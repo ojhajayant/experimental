@@ -13,38 +13,42 @@ sys.path.append('./')
 class HighwayBlock(nn.Module):
     def __init__(self, in_channels, out_channels):
         super(HighwayBlock, self).__init__()
-        self.convblock = nn.Sequential(
-            nn.Conv2d(in_channels, out_channels, kernel_size=(3, 3),
-                      padding=1, bias=False),
-            nn.MaxPool2d(kernel_size=2, stride=2),
-            nn.BatchNorm2d(out_channels),
-            nn.ReLU()
-        )
+
+        self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=(3, 3),
+                               padding=1, bias=False)
+        self.maxpool = nn.MaxPool2d(kernel_size=2, stride=2)
+        self.batchnorm = nn.BatchNorm2d(out_channels)
+        self.relu = nn.ReLU()
 
     def forward(self, x):
-        x = self.convblock(x)
+        x = self.conv1(x)
+        x = self.maxpool(x)
+        x = self.batchnorm(x)
+        x = self.relu(x)
         return x
 
 
 class ResBlock(nn.Module):
     def __init__(self, in_channels, out_channels):
         super(ResBlock, self).__init__()
-        self.residue_layer1 = nn.Sequential(
-            nn.Conv2d(in_channels, out_channels, kernel_size=(3, 3),
-                      padding=1, bias=False),
-            nn.BatchNorm2d(out_channels),
-            nn.ReLU()
-        )
-        self.residue_layer2 = nn.Sequential(
-            nn.Conv2d(out_channels, out_channels, kernel_size=(3, 3),
-                      stride=(2, 2), padding=1, bias=False),
-            nn.BatchNorm2d(out_channels),
-            nn.ReLU()
-        )
+
+        self.conv1 = nn.Conv2d(in_channels, out_channels, kernel_size=(3, 3),
+                               padding=1, bias=False)
+        self.batchnorm1 = nn.BatchNorm2d(out_channels)
+        self.relu1 = nn.ReLU()
+        self.conv2 = nn.Conv2d(out_channels, out_channels, kernel_size=(3, 3),
+                               padding=1, bias=False)
+        self.batchnorm2 = nn.BatchNorm2d(out_channels)
+        self.relu2 = nn.ReLU()
 
     def forward(self, x):
-        x = self.residue_layer1(x)
-        x = self.residue_layer2(x)
+        x = self.conv1(x)
+        x = self.batchnorm1(x)
+        x = self.relu1(x)
+        x = self.conv2(x)
+        x = self.batchnorm2(x)
+        x = self.relu2(x)
+
         return x
 
 
@@ -55,12 +59,12 @@ class Layer(nn.Module):
         self.highway_block = HighwayBlock(input_size, output_size)
         self.skip_resblock = skip_resblock
         if not skip_resblock:
-            self.res_block = ResBlock(input_size, output_size)
+            self.res_block = ResBlock(output_size, output_size)
 
     def forward(self, x):
         out = self.highway_block(x)
         if not self.skip_resblock:
-            out += self.res_block(x)
+            out += self.res_block(out)
         return out
 
 
