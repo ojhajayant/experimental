@@ -29,13 +29,13 @@ class HighwayBlock(nn.Module):
 class ResBlock(nn.Module):
     def __init__(self, in_channels, out_channels):
         super(ResBlock, self).__init__()
-        self.residue_block1 = nn.Sequential(
+        self.residue_layer1 = nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size=(3, 3),
                       padding=1, bias=False),
             nn.BatchNorm2d(out_channels),
             nn.ReLU()
         )
-        self.residue_block2 = nn.Sequential(
+        self.residue_layer2 = nn.Sequential(
             nn.Conv2d(out_channels, out_channels, kernel_size=(3, 3),
                       stride=(2, 2), padding=1, bias=False),
             nn.BatchNorm2d(out_channels),
@@ -43,8 +43,8 @@ class ResBlock(nn.Module):
         )
 
     def forward(self, x):
-        x = self.residue_block1(x)
-        x = self.residue_block2(x)
+        x = self.residue_layer1(x)
+        x = self.residue_layer2(x)
         return x
 
 
