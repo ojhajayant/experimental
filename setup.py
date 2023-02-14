@@ -1,10 +1,10 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='EVA8_API',
+    name='experimental',
     version='0.0.0',
-    description='My EVA8-API repo',
-    url='git@github.com:ojhajayant/EVA8_API.git',
+    description='My experimental repo',
+    url='git@github.com:ojhajayant/experimental.git',
     author='Jayant Ojha',
     author_email='jayantojha78@gmail.com',
     license='unlicense',
