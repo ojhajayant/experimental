@@ -54,7 +54,7 @@ def get_args():
                         help='at what epoch Max LR should reach?')
     parser.add_argument('--lr_range_test_epochs', '-E', default=500, type=int,
                         help='epoch value used for the LR-range-test')
-    parser.add_argument('--best_lr', default=0.504999999999, type=float,
+    parser.add_argument('--best_lr', default=1.0019999999998, type=float,
                         help='best_lr obtained from the LR-range-test')
     parser.add_argument('--cycle_momentum', default=True, type=bool,
                         help='Make cyclic changes to momentum value during OCP?')
