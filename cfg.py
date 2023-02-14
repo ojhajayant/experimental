@@ -36,9 +36,9 @@ def get_args():
                         help='Dataset--CIFAR10, MNIST, or...')
     parser.add_argument('--img_size', '-I', default=(32, 32), type=tuple,
                         help='Image Size')
-    parser.add_argument('--batch_size', '-b', default=128, type=int,
+    parser.add_argument('--batch_size', '-b', default=512, type=int,
                         help='batch size')
-    parser.add_argument('--epochs', '-e', default=20, type=int,
+    parser.add_argument('--epochs', '-e', default=24, type=int,
                         help='training epochs')
     # Below (lr=0.01) was the default for the custom model architecture used for S7
     # parser.add_argument('--lr', default=0.01, type=float, help='learning rate')
@@ -46,11 +46,11 @@ def get_args():
     parser.add_argument('--criterion', default=nn.NLLLoss(),
                         type=nn.modules.loss._Loss,
                         help='The loss function to be used during training')
-    parser.add_argument('--init_lr', default=1e-4, type=float,
+    parser.add_argument('--init_lr', default=1e-10, type=float,
                         help='lr lower range value used for the LR-range-test')
-    parser.add_argument('--end_lr', default=0.05, type=float,
+    parser.add_argument('--end_lr', default=1, type=float,
                         help='lr upper range value used for the LR-range-test')
-    parser.add_argument('--lr_range_test_epochs', '-E', default=100, type=int,
+    parser.add_argument('--lr_range_test_epochs', '-E', default=500, type=int,
                         help='epoch value used for the LR-range-test')
     parser.add_argument('--best_lr', default=0.504999999999, type=float,
                         help='best_lr obtained from the LR-range-test')
