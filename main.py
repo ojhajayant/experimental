@@ -307,9 +307,9 @@ def main_session_8_custom_net():
         # final_div_factor = div_factor for NO annihilation
         FINAL_DIV_FACTOR = DIV_FACTOR
         EPOCHS = args.epochs
-        MAX_LR_EPOCH = EPOCHS // 2
+        MAX_LR_EPOCHS = args.max_lr_epochs #EPOCHS // 2
         NUM_OF_BATCHES = len(train_loader)
-        PCT_START = MAX_LR_EPOCH / EPOCHS
+        PCT_START = MAX_LR_EPOCHS / EPOCHS
         # Based on above found maximum LR, initialize LRMAX and LRMIN
         LRMAX = best_lr
         LRMIN = LRMAX / DIV_FACTOR
