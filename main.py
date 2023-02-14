@@ -176,7 +176,7 @@ def main_session_7_resnet():
                         criterion,
                         scheduler=scheduler,
                         L1=L1)
-            model_name = test.test(model, device, test_loader, optimizer, epoch)
+            model_name = test.test(model, device, test_loader, optimizer, epoch, criterion)
             last_best = last_best if (model_name == '') else model_name
         misc.plot_momentum_lr()
         misc.plot_acc()
@@ -341,7 +341,7 @@ def main_session_8_custom_net():
                         criterion,
                         scheduler=scheduler,
                         L1=L1)
-            model_name = test.test(model, device, test_loader, optimizer, epoch)
+            model_name = test.test(model, device, test_loader, optimizer, epoch, criterion)
             last_best = last_best if (model_name == '') else model_name
         misc.plot_momentum_lr()
         misc.plot_acc()
