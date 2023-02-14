@@ -43,7 +43,7 @@ def get_args():
     # Below (lr=0.01) was the default for the custom model architecture used for S7
     # parser.add_argument('--lr', default=0.01, type=float, help='learning rate')
     # Below (lr=0.0006) was the default for the ResNet18 used for S8
-    parser.add_argument('--criterion', default=nn.NLLLoss(),
+    parser.add_argument('--criterion', default=nn.CrossEntropyLoss(),
                         type=nn.modules.loss._Loss,
                         help='The loss function to be used during training')
     parser.add_argument('--init_lr', default=1e-10, type=float,
