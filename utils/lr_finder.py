@@ -351,6 +351,162 @@ class LRFinder(object):
                 break
 
         print("Learning rate search finished. See the graph with {finder_name}.plot()")
+	
+    def range_test_acc_over_epochs(
+        self,
+        train_loader,
+        val_loader=None,
+        start_lr=None,
+        end_lr=10,
+        num_epochs=100,
+        step_mode="linear",
+        smooth_f=0.05,
+        diverge_th=5,
+        accumulation_steps=1,
+        non_blocking_transfer=True,
+    ):
+        """Performs the learning rate range test for acc over epochs.
+        Arguments:
+            train_loader (`torch.utils.data.DataLoader`
+                or child of `TrainDataLoaderIter`, optional):
+                the training set data loader.
+                If your dataset (data loader) returns a tuple (inputs, labels,*) then
+                Pytorch data loader object can be provided. However, if a dataset
+                returns different outputs e.g. dicts, then you should inherit
+                from `TrainDataLoaderIter` class and redefine `inputs_labels_from_batch`
+                method so that it outputs (inputs, labels).
+            val_loader (`torch.utils.data.DataLoader`
+                or child of `ValDataLoaderIter`, optional): if `None` the range test
+                will only use the training loss. When given a data loader, the model is
+                evaluated after each iteration on that dataset and the evaluation loss
+                is used. Note that in this mode the test takes significantly longer but
+                generally produces more precise results.
+                Similarly to `train_loader`, if your dataset outputs are not standard
+                you should inherit from `ValDataLoaderIter` class and
+                redefine method `inputs_labels_from_batch` so that
+                it outputs (inputs, labels). Default: None.
+            start_lr (float, optional): the starting learning rate for the range test.
+                Default: None (uses the learning rate from the optimizer).
+            end_lr (float, optional): the maximum learning rate to test. Default: 10.
+            num_iter (int, optional): the number of iterations over which the test
+                occurs. Default: 100.
+            step_mode (str, optional): one of the available learning rate policies,
+                linear or exponential ("linear", "exp"). Default: "exp".
+            smooth_f (float, optional): the loss smoothing factor within the [0, 1[
+                interval. Disabled if set to 0, otherwise the loss is smoothed using
+                exponential smoothing. Default: 0.05.
+            diverge_th (int, optional): the test is stopped when the loss surpasses the
+                threshold:  diverge_th * best_loss. Default: 5.
+            accumulation_steps (int, optional): steps for gradient accumulation. If it
+                is 1, gradients are not accumulated. Default: 1.
+            non_blocking_transfer (bool, optional): when non_blocking_transfer is set,
+                tries to convert/move data to the device asynchronously if possible,
+                e.g., moving CPU Tensors with pinned memory to CUDA devices. Default: True.
+        Example (fastai approach):
+            >>> lr_finder = LRFinder(net, optimizer, criterion, device="cuda")
+            >>> lr_finder.range_test(dataloader, end_lr=100, num_iter=100)
+        Example (Leslie Smith's approach):
+            >>> lr_finder = LRFinder(net, optimizer, criterion, device="cuda")
+            >>> lr_finder.range_test(trainloader, val_loader=val_loader, end_lr=1, num_iter=100, step_mode="linear")
+        Gradient accumulation is supported; example:
+            >>> train_data = ...    # prepared dataset
+            >>> desired_bs, real_bs = 32, 4         # batch size
+            >>> accumulation_steps = desired_bs // real_bs     # required steps for accumulation
+            >>> dataloader = torch.utils.data.DataLoader(train_data, batch_size=real_bs, shuffle=True)
+            >>> acc_lr_finder = LRFinder(net, optimizer, criterion, device="cuda")
+            >>> acc_lr_finder.range_test(dataloader, end_lr=10, num_iter=100, accumulation_steps=accumulation_steps)
+        If your DataLoader returns e.g. dict, or other non standard output, intehit from TrainDataLoaderIter,
+        redefine method `inputs_labels_from_batch` so that it outputs (inputs, lables) data:
+            >>> import torch_lr_finder
+            >>> class TrainIter(torch_lr_finder.TrainDataLoaderIter):
+            >>>     def inputs_labels_from_batch(self, batch_data):
+            >>>         return (batch_data['user_features'], batch_data['user_history']), batch_data['y_labels']
+            >>> train_data_iter = TrainIter(train_dl)
+            >>> finder = torch_lr_finder.LRFinder(model, optimizer, partial(model._train_loss, need_one_hot=False))
+            >>> finder.range_test(train_data_iter, end_lr=10, num_iter=300, diverge_th=10)
+        Reference:
+        [Training Neural Nets on Larger Batches: Practical Tips for 1-GPU, Multi-GPU & Distributed setups](
+        https://medium.com/huggingface/ec88c3e51255)
+        [thomwolf/gradient_accumulation](https://gist.github.com/thomwolf/ac7a7da6b1888c2eeac8ac8b9b05d3d3)
+        """
+
+        # Reset test results
+        self.history = {"lr": [], "acc": []}
+        self.best_acc = None
+
+        # Move the model to the proper device
+        self.model.to(self.device)
+
+        # Check if the optimizer is already attached to a scheduler
+        self._check_for_scheduler()
+
+        # Set the starting learning rate
+        if start_lr:
+            self._set_learning_rate(start_lr)
+
+        # Initialize the proper learning rate policy
+        if step_mode.lower() == "exp":
+            lr_schedule = ExponentialLR(self.optimizer, end_lr, num_epochs)
+        elif step_mode.lower() == "linear":
+            lr_schedule = LinearLR(self.optimizer, end_lr, num_epochs)
+        else:
+            raise ValueError("expected one of (exp, linear), got {}".format(step_mode))
+
+        if smooth_f < 0 or smooth_f >= 1:
+            raise ValueError("smooth_f is outside the range [0, 1[")
+        num_iter = len([b for b, _ in enumerate(train_loader)])
+        for epoch in tqdm(range(num_epochs)):
+	        # Create an iterator to get data batch by batch
+	        if isinstance(train_loader, DataLoader):
+	            train_iter = TrainDataLoaderIter(train_loader)
+	        elif isinstance(train_loader, TrainDataLoaderIter):
+	            train_iter = train_loader
+	        else:
+	            raise ValueError(
+	                "`train_loader` has unsupported type: {}."
+	                "Expected types are `torch.utils.data.DataLoader`"
+	                "or child of `TrainDataLoaderIter`.".format(type(train_loader))
+	            )
+
+	        if val_loader:
+	            if isinstance(val_loader, DataLoader):
+	                val_iter = ValDataLoaderIter(val_loader)
+	            elif isinstance(val_loader, ValDataLoaderIter):
+	                val_iter = val_loader
+	            else:
+	                raise ValueError(
+	                    "`val_loader` has unsupported type: {}."
+	                    "Expected types are `torch.utils.data.DataLoader`"
+	                    "or child of `ValDataLoaderIter`.".format(type(val_loader))
+	                )
+                train_acc = []
+	        for iteration in tqdm(range(num_iter)):
+	            # Train on batch and retrieve acc
+	            _, acc = self._train_batch(
+	                train_iter,
+	                accumulation_steps,
+	                non_blocking_transfer=non_blocking_transfer,
+	            )
+	            train_acc.append(acc)
+	            
+
+	            # Track the best acc and smooth it if smooth_f is specified
+                    accuracy = train_acc[len(train_acc) - 1]
+	            if epoch == 0:
+	                self.best_acc = accuracy
+	            else:
+	                if smooth_f > 0:
+	                    accuracy = smooth_f * accuracy + (1 - smooth_f) * self.history["acc"][-1]
+	                if accuracy > self.best_acc:
+	                    self.best_acc = accuracy
+
+	            # Check if the acc has diverged; if it has, stop the test
+	            self.history["acc"].append(accuracy)
+         	    # Update the learning rate
+	            self.history["lr"].append(lr_schedule.get_lr()[0])
+	            lr_schedule.step()
+
+        print("Learning rate search finished. See the graph with {finder_name}.plot()")
 
     def _set_learning_rate(self, new_lrs):
         if not isinstance(new_lrs, list):
@@ -667,7 +823,7 @@ def find_network_lr(model, criterion, optimizer, device, train_loader, init_lr, 
     lr_range_test_optimizer = optimizer(model.parameters(), lr=init_lr, weight_decay=init_weight_decay)
     lr_finder = LRFinder(model, lr_range_test_optimizer, criterion, device=device)
     lr_finder.range_test_over_epochs(train_loader, end_lr=end_lr, num_epochs=num_epochs)
-    max_val_index = lr_finder.history['loss'].index(lr_finder.best_acc)
+    max_val_index = lr_finder.history['acc'].index(lr_finder.best_acc)
     best_lr = lr_finder.history['lr'][max_val_index]
     print(f"LR (max accuracy {lr_finder.best_acc}) to be used: {best_lr}")
     lr_finder.plot(show_lr=best_lr, yaxis_label="Training Accuracy")  # to inspect the accuracy-learning rate graph
