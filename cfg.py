@@ -52,7 +52,7 @@ def get_args():
                         help='lr upper range value used for the LR-range-test')
     parser.add_argument('--max_lr_epochs', '-M', default=5, type=int,
                         help='at what epoch Max LR should reach?')
-    parser.add_argument('--lr_range_test_epochs', '-E', default=500, type=int,
+    parser.add_argument('--lr_range_test_epochs', '-E', default=150, type=int,
                         help='epoch value used for the LR-range-test')
     parser.add_argument('--best_lr', default=0.03, type=float,
                         help='best_lr obtained from the LR-range-test')
