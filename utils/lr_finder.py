@@ -1,3 +1,47 @@
+#!/usr/bin/env python
+"""
+lr_finder.py: This contains learning-rate-finder class definitions & utilities.
+"""
+from __future__ import print_function, with_statement, division
+import copy
+import os
+import sys
+import torch
+from tqdm.autonotebook import tqdm
+from torch.optim.lr_scheduler import _LRScheduler
+import matplotlib
+# matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+from IPython.display import display
+import cfg
+from utils import misc
+from models import resnet18
+
+sys.path.append('./')
+global args
+from cfg import get_args
+
+args = get_args()
+file_path = args.data
+
+try:
+    from apex import amp
+
+    IS_AMP_AVAILABLE = True
+except ImportError:
+    import logging
+
+    logging.basicConfig()
+    logger = logging.getLogger(__name__)
+    # logger.warning(
+    #     "To enable mixed precision training, please install `apex`. "
+    #     "Or you can re-install this package by the following command:\n"
+    #     '  pip install torch-lr-finder -v --global-option="amp"'
+    # )
+    IS_AMP_AVAILABLE = False
+    del logging
+
+
 class LRFinder(object):
     """Learning rate range test.
     The learning rate range test increases the learning rate in a pre-training run
