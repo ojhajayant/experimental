@@ -406,8 +406,14 @@ class LRFinder(object):
                 total_loss += loss
 
         self.optimizer.step()
+		
+		# calculate accuracy
+        pred = outputs.argmax(dim=1, keepdim=True)  # get the index of the max log-probability
+        correct = pred.eq(labels.view_as(pred)).sum().item()
+        processed = len(inputs)
+        train_acc = (100*correct/processed)
 
-        return total_loss.item()
+        return total_loss.item(), train_acc
 
     def _move_to_device(self, inputs, labels, non_blocking=True):
         def move(obj, device, non_blocking=True):
