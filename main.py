@@ -292,7 +292,8 @@ def main_session_8_custom_net():
                                             init_lr,
                                             init_weight_decay,
                                             end_lr,
-                                            lr_range_test_epochs)
+                                            lr_range_test_epochs,
+                                            L1=True)
         print("best_lr is {}".format(best_lr))
     elif args.cmd == 'train':
         print("Model training starts on {} dataset".format(args.dataset))
