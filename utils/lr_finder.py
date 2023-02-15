@@ -71,6 +71,10 @@ class LRRangeFinder(_LRScheduler):
         plt.xscale("log")
         plt.xlabel("Learning rate")
         plt.ylabel(yaxis_label)
+        plt.savefig('plot13.png')
+            from IPython.display import Image
+            Image(filename='plot13.png')
+            display(plt.gcf())
         plt.show()
 
 def find_network_lr(model, criterion, optimizer, device, train_loader, init_lr, init_weight_decay, end_lr=1, num_epochs=100, L1=False):
@@ -100,5 +104,5 @@ def find_network_lr(model, criterion, optimizer, device, train_loader, init_lr, 
             lr_finder.on_batch_end(epoch, {"loss": loss.item()})
         train_loss /= len(train_loader.dataset)
     lr_finder.on_train_end()
-    lr_finder.plot(show_lr
-
+    lr_finder.plot(show_lr=lr_finder.lr, yaxis_label="Training Accuracy")
+    return lr_finder.lr
