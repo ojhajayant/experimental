@@ -46,9 +46,9 @@ def get_args():
     parser.add_argument('--criterion', default=nn.CrossEntropyLoss(),
                         type=nn.modules.loss._Loss,
                         help='The loss function to be used during training')
-    parser.add_argument('--init_lr', default=1e-10, type=float,
+    parser.add_argument('--init_lr', default=1e-4, type=float,
                         help='lr lower range value used for the LR-range-test')
-    parser.add_argument('--end_lr', default=1, type=float,
+    parser.add_argument('--end_lr', default=0.1, type=float,
                         help='lr upper range value used for the LR-range-test')
     parser.add_argument('--max_lr_epochs', '-M', default=5, type=int,
                         help='at what epoch Max LR should reach?')
@@ -56,7 +56,7 @@ def get_args():
                         help='epoch value used for the LR-range-test')
     parser.add_argument('--best_lr', default=0.504999999999, type=float,
                         help='best_lr obtained from the LR-range-test')
-    parser.add_argument('--cycle_momentum', default=False, type=bool,
+    parser.add_argument('--cycle_momentum', default=True, type=bool,
                         help='Make cyclic changes to momentum value during OCP?')
     parser.add_argument('--optimizer', default=optim.SGD, type=type(optim.SGD),
                         help='The optimizer to be used during training')
@@ -68,7 +68,7 @@ def get_args():
                         help='L1-penalty value')
     parser.add_argument('--l2_weight_decay', default=0.0002125, type=float,
                         help='L2-penalty/weight_decay value')
-    parser.add_argument('--L1', default=False, type=bool,
+    parser.add_argument('--L1', default=True, type=bool,
                         help='L1-penalty to be used or not?')
     parser.add_argument('--L2', default=False, type=bool,
                         help='L2-penalty/weight_decay to be used or not?')
