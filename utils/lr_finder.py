@@ -362,8 +362,8 @@ class LRFinder(object):
             end_lr=10,
             num_epochs=100,
             step_mode="linear",
-#             smooth_f=0,
-            smooth_f=0.05,
+            smooth_f=0,
+#             smooth_f=0.05,
             accumulation_steps=1,
             non_blocking_transfer=True,
     ):
