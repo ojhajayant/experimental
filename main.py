@@ -368,7 +368,7 @@ def main_session_8_custom_net():
                                       test_dataset, mean_tuple,
                                       std_tuple, layer='layer3')
 
-
+        
 if __name__ == '__main__':
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
