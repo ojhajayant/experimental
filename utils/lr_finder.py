@@ -75,9 +75,13 @@ class LRRangeFinder(_LRScheduler):
 
 def find_network_lr(model, criterion, optimizer, device, train_loader, init_lr, init_weight_decay, end_lr=1, num_epochs=100, L1=False):
     if L1:
-        reg = lambda x: torch.norm(x, 1)
+        reg = 0
+        for param in model.parameters():
+            reg += torch.norm(param, 1)
     else:
-        reg = lambda x: torch.norm(x, 2)
+        reg = 0
+        for param in model.parameters():
+            reg += torch.norm(param, 2)
 
     model.to(device)
     optimizer = optimizer(model.parameters(), lr=init_lr, weight_decay=init_weight_decay)
@@ -89,12 +93,12 @@ def find_network_lr(model, criterion, optimizer, device, train_loader, init_lr, 
             x, y = x.to(device), y.to(device)
             optimizer.zero_grad()
             output = model(x)
-            loss = criterion(output, y) + reg(model.parameters())
+            loss = criterion(output, y) + reg
             loss.backward()
             optimizer.step()
             train_loss += loss.item() * x.shape[0]
             lr_finder.on_batch_end(epoch, {"loss": loss.item()})
         train_loss /= len(train_loader.dataset)
     lr_finder.on_train_end()
-    lr_finder.plot(show_lr=lr_finder.lr, yaxis_label="Training Accuracy")
-    return lr_finder.lr
+    lr_finder.plot(show_lr
+
