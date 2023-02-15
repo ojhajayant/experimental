@@ -284,6 +284,7 @@ def main_session_8_custom_net():
         init_weight_decay = weight_decay  # Based on L2 True/False
         end_lr = args.end_lr
         lr_range_test_epochs = args.lr_range_test_epochs
+        
         best_lr = lr_finder.find_network_lr(model,
                                             criterion,
                                             optimizer,
