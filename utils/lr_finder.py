@@ -230,6 +230,7 @@ class LRFinder(object):
             smooth_f=0.05,
             diverge_th=5,
             accumulation_steps=1,
+            L1=False,
     ):
         """Performs the learning rate range test. Arguments: train_loader (
         torch.utils.data.DataLoader): the training set data laoder.
@@ -343,7 +344,7 @@ class LRFinder(object):
                 raise RuntimeError(
                     "Optimizer already has a scheduler attached to it")
 
-    def _train_batch(self, iter_wrapper, accumulation_steps):
+    def _train_batch(self, iter_wrapper, accumulation_steps, L1=False):
         self.model.train()
         total_loss = None  # for late initialization
 
@@ -354,7 +355,20 @@ class LRFinder(object):
 
             # Forward pass
             outputs = self.model(inputs)
-            loss = self.criterion(outputs, labels)
+            if L1:
+                to_reg = []
+                for param in self.model.parameters():
+                    to_reg.append(param.view(-1))
+                l1 = args.l1_weight * misc.l1_penalty(torch.cat(to_reg))
+            else:
+                l1 = 0
+            # Calculate loss
+            # L1 regularization adds an L1 penalty equal to the
+            # absolute value of the magnitude of coefficients
+            # torch.nn.CrossEntropyLoss:criterion combines
+            # nn.LogSoftmax() and nn.NLLLoss() in one single class.
+            #loss = criterion(y_pred, target) + l1
+            loss = self.criterion(outputs, labels) + l1
 
             # Loss should be averaged in each step
             loss /= accumulation_steps
@@ -677,7 +691,7 @@ class DataLoaderIterWrapper(object):
 
 
 def find_network_lr(model, criterion, optimizer, device, train_loader, init_lr,
-                    init_weight_decay, end_lr=1, num_epochs=100):
+                    init_weight_decay, end_lr=1, num_epochs=100, L1=False):
     print(
         f"Finding max LR for One Cycle Policy, using LR-Range Test  over {num_epochs} epochs...")
     lr_range_test_optimizer = optimizer(model.parameters(), lr=init_lr,
@@ -685,7 +699,7 @@ def find_network_lr(model, criterion, optimizer, device, train_loader, init_lr,
     lr_finder = LRFinder(model, lr_range_test_optimizer, criterion,
                          device=device)
     lr_finder.range_test_over_epochs(train_loader, end_lr=end_lr,
-                                     num_epochs=num_epochs)
+                                     num_epochs=num_epochs, L1=L1)
     max_val_index = lr_finder.history['loss'].index(lr_finder.best_acc)
     best_lr = lr_finder.history['lr'][max_val_index]
     print(f"LR (max accuracy {lr_finder.best_acc}) to be used: {best_lr}")
