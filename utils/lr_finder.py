@@ -7,6 +7,9 @@ import copy
 import os
 import sys
 import torch
+import numpy as np
+from torch.utils.data import DataLoader
+from packaging import version
 from tqdm.autonotebook import tqdm
 from torch.optim.lr_scheduler import _LRScheduler
 import matplotlib
@@ -24,16 +27,7 @@ from cfg import get_args
 args = get_args()
 file_path = args.data
 
-import copy
-import os
-import torch
-import numpy as np
-from tqdm.autonotebook import tqdm
-from torch.optim.lr_scheduler import _LRScheduler
-import matplotlib.pyplot as plt
-from torch.utils.data import DataLoader
 
-from packaging import version
 
 PYTORCH_VERSION = version.parse(torch.__version__)
 
