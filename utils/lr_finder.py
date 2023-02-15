@@ -27,8 +27,6 @@ from cfg import get_args
 args = get_args()
 file_path = args.data
 
-
-
 PYTORCH_VERSION = version.parse(torch.__version__)
 
 try:
@@ -49,7 +47,8 @@ class DataLoaderIter(object):
         return self.data_loader.dataset
 
     def inputs_labels_from_batch(self, batch_data):
-        if not isinstance(batch_data, list) and not isinstance(batch_data, tuple):
+        if not isinstance(batch_data, list) and not isinstance(batch_data,
+                                                               tuple):
             raise ValueError(
                 "Your batch type is not supported: {}. Please inherit from "
                 "`TrainDataLoaderIter` or `ValDataLoaderIter` and override the "
@@ -153,13 +152,13 @@ class LRFinder(object):
     """
 
     def __init__(
-        self,
-        model,
-        optimizer,
-        criterion,
-        device=None,
-        memory_cache=True,
-        cache_dir=None,
+            self,
+            model,
+            optimizer,
+            criterion,
+            device=None,
+            memory_cache=True,
+            cache_dir=None,
     ):
         # Check if the optimizer is already attached to a scheduler
         self.optimizer = optimizer
@@ -193,17 +192,17 @@ class LRFinder(object):
         self.model.to(self.model_device)
 
     def range_test(
-        self,
-        train_loader,
-        val_loader=None,
-        start_lr=None,
-        end_lr=10,
-        num_iter=100,
-        step_mode="exp",
-        smooth_f=0.05,
-        diverge_th=5,
-        accumulation_steps=1,
-        non_blocking_transfer=True,
+            self,
+            train_loader,
+            val_loader=None,
+            start_lr=None,
+            end_lr=10,
+            num_iter=100,
+            step_mode="exp",
+            smooth_f=0.05,
+            diverge_th=5,
+            accumulation_steps=1,
+            non_blocking_transfer=True,
     ):
         """Performs the learning rate range test.
         Arguments:
@@ -290,7 +289,8 @@ class LRFinder(object):
         elif step_mode.lower() == "linear":
             lr_schedule = LinearLR(self.optimizer, end_lr, num_iter)
         else:
-            raise ValueError("expected one of (exp, linear), got {}".format(step_mode))
+            raise ValueError(
+                "expected one of (exp, linear), got {}".format(step_mode))
 
         if smooth_f < 0 or smooth_f >= 1:
             raise ValueError("smooth_f is outside the range [0, 1[")
@@ -340,7 +340,8 @@ class LRFinder(object):
                 self.best_loss = loss
             else:
                 if smooth_f > 0:
-                    loss = smooth_f * loss + (1 - smooth_f) * self.history["loss"][-1]
+                    loss = smooth_f * loss + (1 - smooth_f) * \
+                           self.history["loss"][-1]
                 if loss < self.best_loss:
                     self.best_loss = loss
 
@@ -350,20 +351,21 @@ class LRFinder(object):
                 print("Stopping early, the loss has diverged")
                 break
 
-        print("Learning rate search finished. See the graph with {finder_name}.plot()")
-	
+        print(
+            "Learning rate search finished. See the graph with {finder_name}.plot()")
+
     def range_test_acc_over_epochs(
-        self,
-        train_loader,
-        val_loader=None,
-        start_lr=None,
-        end_lr=10,
-        num_epochs=100,
-        step_mode="linear",
-        smooth_f=0.05,
-        diverge_th=5,
-        accumulation_steps=1,
-        non_blocking_transfer=True,
+            self,
+            train_loader,
+            val_loader=None,
+            start_lr=None,
+            end_lr=10,
+            num_epochs=100,
+            step_mode="linear",
+            smooth_f=0.05,
+            diverge_th=5,
+            accumulation_steps=1,
+            non_blocking_transfer=True,
     ):
         """Performs the learning rate range test for acc over epochs.
         Arguments:
@@ -450,63 +452,67 @@ class LRFinder(object):
         elif step_mode.lower() == "linear":
             lr_schedule = LinearLR(self.optimizer, end_lr, num_epochs)
         else:
-            raise ValueError("expected one of (exp, linear), got {}".format(step_mode))
+            raise ValueError(
+                "expected one of (exp, linear), got {}".format(step_mode))
 
         if smooth_f < 0 or smooth_f >= 1:
             raise ValueError("smooth_f is outside the range [0, 1[")
         num_iter = len([b for b, _ in enumerate(train_loader)])
         for epoch in tqdm(range(num_epochs)):
-	        # Create an iterator to get data batch by batch
-	        if isinstance(train_loader, DataLoader):
-	            train_iter = TrainDataLoaderIter(train_loader)
-	        elif isinstance(train_loader, TrainDataLoaderIter):
-	            train_iter = train_loader
-	        else:
-	            raise ValueError(
-	                "`train_loader` has unsupported type: {}."
-	                "Expected types are `torch.utils.data.DataLoader`"
-	                "or child of `TrainDataLoaderIter`.".format(type(train_loader))
-	            )
+            # Create an iterator to get data batch by batch
+            if isinstance(train_loader, DataLoader):
+                train_iter = TrainDataLoaderIter(train_loader)
+            elif isinstance(train_loader, TrainDataLoaderIter):
+                train_iter = train_loader
+            else:
+                raise ValueError(
+                    "`train_loader` has unsupported type: {}."
+                    "Expected types are `torch.utils.data.DataLoader`"
+                    "or child of `TrainDataLoaderIter`.".format(
+                        type(train_loader))
+                )
 
-	        if val_loader:
-	            if isinstance(val_loader, DataLoader):
-	                val_iter = ValDataLoaderIter(val_loader)
-	            elif isinstance(val_loader, ValDataLoaderIter):
-	                val_iter = val_loader
-	            else:
-	                raise ValueError(
-	                    "`val_loader` has unsupported type: {}."
-	                    "Expected types are `torch.utils.data.DataLoader`"
-	                    "or child of `ValDataLoaderIter`.".format(type(val_loader))
-	                )
-                train_acc = []
-	        for iteration in tqdm(range(num_iter)):
-	            # Train on batch and retrieve acc
-	            _, acc = self._train_batch(
-	                train_iter,
-	                accumulation_steps,
-	                non_blocking_transfer=non_blocking_transfer,
-	            )
-	            train_acc.append(acc)
-	            
+            if val_loader:
+                if isinstance(val_loader, DataLoader):
+                    val_iter = ValDataLoaderIter(val_loader)
+                elif isinstance(val_loader, ValDataLoaderIter):
+                    val_iter = val_loader
+                else:
+                    raise ValueError(
+                        "`val_loader` has unsupported type: {}."
+                        "Expected types are `torch.utils.data.DataLoader`"
+                        "or child of `ValDataLoaderIter`.".format(
+                            type(val_loader))
+                    )
+            train_acc = []
+            for iteration in range(num_iter):
+                # Train on batch and retrieve acc
+                _, acc = self._train_batch(
+                    train_iter,
+                    accumulation_steps,
+                    non_blocking_transfer=non_blocking_transfer,
+                )
+                train_acc.append(acc)
 
-	            # Track the best acc and smooth it if smooth_f is specified
-                    accuracy = train_acc[len(train_acc) - 1]
-	            if epoch == 0:
-	                self.best_acc = accuracy
-	            else:
-	                if smooth_f > 0:
-	                    accuracy = smooth_f * accuracy + (1 - smooth_f) * self.history["acc"][-1]
-	                if accuracy > self.best_acc:
-	                    self.best_acc = accuracy
+                # Track the best acc and smooth it if smooth_f is specified
+                accuracy = train_acc[len(train_acc) - 1]
+                if epoch == 0:
+                    self.best_acc = accuracy
+                else:
+                    if smooth_f > 0:
+                        accuracy = smooth_f * accuracy + (1 - smooth_f) * \
+                                   self.history["acc"][-1]
+                    if accuracy > self.best_acc:
+                        self.best_acc = accuracy
 
-	            # Check if the acc has diverged; if it has, stop the test
-	            self.history["acc"].append(accuracy)
-         	    # Update the learning rate
-	            self.history["lr"].append(lr_schedule.get_lr()[0])
-	            lr_schedule.step()
+                # Check if the acc has diverged; if it has, stop the test
+                self.history["acc"].append(accuracy)
+                # Update the learning rate
+                self.history["lr"].append(lr_schedule.get_lr()[0])
+                lr_schedule.step()
 
-        print("Learning rate search finished. See the graph with {finder_name}.plot()")
+        print(
+            "Learning rate search finished. See the graph with {finder_name}.plot()")
 
     def _set_learning_rate(self, new_lrs):
         if not isinstance(new_lrs, list):
@@ -523,9 +529,11 @@ class LRFinder(object):
     def _check_for_scheduler(self):
         for param_group in self.optimizer.param_groups:
             if "initial_lr" in param_group:
-                raise RuntimeError("Optimizer already has a scheduler attached to it")
+                raise RuntimeError(
+                    "Optimizer already has a scheduler attached to it")
 
-    def _train_batch(self, train_iter, accumulation_steps, non_blocking_transfer=True):
+    def _train_batch(self, train_iter, accumulation_steps,
+                     non_blocking_transfer=True):
         self.model.train()
         total_loss = None  # for late initialization
 
@@ -550,7 +558,7 @@ class LRFinder(object):
                 delay_unscale = ((i + 1) % accumulation_steps) != 0
 
                 with amp.scale_loss(
-                    loss, self.optimizer, delay_unscale=delay_unscale
+                        loss, self.optimizer, delay_unscale=delay_unscale
                 ) as scaled_loss:
                     scaled_loss.backward()
             else:
@@ -562,12 +570,13 @@ class LRFinder(object):
                 total_loss += loss
 
         self.optimizer.step()
-		
-		# calculate accuracy
-        pred = outputs.argmax(dim=1, keepdim=True)  # get the index of the max log-probability
+
+        # calculate accuracy
+        pred = outputs.argmax(dim=1,
+                              keepdim=True)  # get the index of the max log-probability
         correct = pred.eq(labels.view_as(pred)).sum().item()
         processed = len(inputs)
-        train_acc = (100*correct/processed)
+        train_acc = (100 * correct / processed)
 
         return total_loss.item(), train_acc
 
@@ -580,7 +589,8 @@ class LRFinder(object):
             elif isinstance(obj, list):
                 return [move(o, device, non_blocking) for o in obj]
             elif isinstance(obj, dict):
-                return {k: move(o, device, non_blocking) for k, o in obj.items()}
+                return {k: move(o, device, non_blocking) for k, o in
+                        obj.items()}
             else:
                 return obj
 
@@ -607,13 +617,13 @@ class LRFinder(object):
         return running_loss / len(val_iter.dataset)
 
     def plot(
-        self,
-        skip_start=10,
-        skip_end=5,
-        log_lr=True,
-        show_lr=None,
-        ax=None,
-        suggest_lr=True,
+            self,
+            skip_start=10,
+            skip_end=5,
+            log_lr=True,
+            show_lr=None,
+            ax=None,
+            suggest_lr=True,
     ):
         """Plots the learning rate range test.
         Arguments:
@@ -734,7 +744,8 @@ class LinearLR(_LRScheduler):
         else:
             r = self.last_epoch / (self.num_iter - 1)
 
-        return [base_lr + r * (self.end_lr - base_lr) for base_lr in self.base_lrs]
+        return [base_lr + r * (self.end_lr - base_lr) for base_lr in
+                self.base_lrs]
 
 
 class ExponentialLR(_LRScheduler):
@@ -766,7 +777,8 @@ class ExponentialLR(_LRScheduler):
         else:
             r = self.last_epoch / (self.num_iter - 1)
 
-        return [base_lr * (self.end_lr / base_lr) ** r for base_lr in self.base_lrs]
+        return [base_lr * (self.end_lr / base_lr) ** r for base_lr in
+                self.base_lrs]
 
 
 class StateCacher(object):
@@ -788,7 +800,8 @@ class StateCacher(object):
         if self.in_memory:
             self.cached.update({key: copy.deepcopy(state_dict)})
         else:
-            fn = os.path.join(self.cache_dir, "state_{}_{}.pt".format(key, id(self)))
+            fn = os.path.join(self.cache_dir,
+                              "state_{}_{}.pt".format(key, id(self)))
             self.cached.update({key: fn})
             torch.save(state_dict, fn)
 
@@ -802,9 +815,11 @@ class StateCacher(object):
             fn = self.cached.get(key)
             if not os.path.exists(fn):
                 raise RuntimeError(
-                    "Failed to load state in {}. File doesn't exist anymore.".format(fn)
+                    "Failed to load state in {}. File doesn't exist anymore.".format(
+                        fn)
                 )
-            state_dict = torch.load(fn, map_location=lambda storage, location: storage)
+            state_dict = torch.load(fn, map_location=lambda storage,
+                                                            location: storage)
             return state_dict
 
     def __del__(self):
@@ -818,14 +833,21 @@ class StateCacher(object):
             if os.path.exists(self.cached[k]):
                 os.remove(self.cached[k])
 
-def find_network_lr(model, criterion, optimizer, device, train_loader, init_lr, init_weight_decay, end_lr=1, num_epochs=100):
-    print(f"Finding max LR for One Cycle Policy using LR Test Range over {num_epochs} epochs...")
-    lr_range_test_optimizer = optimizer(model.parameters(), lr=init_lr, weight_decay=init_weight_decay)
-    lr_finder = LRFinder(model, lr_range_test_optimizer, criterion, device=device)
-    lr_finder.range_test_over_epochs(train_loader, end_lr=end_lr, num_epochs=num_epochs)
+
+def find_network_lr(model, criterion, optimizer, device, train_loader, init_lr,
+                    init_weight_decay, end_lr=1, num_epochs=100):
+    print(
+        f"Finding max LR for One Cycle Policy using LR Test Range over {num_epochs} epochs...")
+    lr_range_test_optimizer = optimizer(model.parameters(), lr=init_lr,
+                                        weight_decay=init_weight_decay)
+    lr_finder = LRFinder(model, lr_range_test_optimizer, criterion,
+                         device=device)
+    lr_finder.range_test_acc_over_epochs(train_loader, end_lr=end_lr,
+                                     num_epochs=num_epochs)
     max_val_index = lr_finder.history['acc'].index(lr_finder.best_acc)
     best_lr = lr_finder.history['lr'][max_val_index]
     print(f"LR (max accuracy {lr_finder.best_acc}) to be used: {best_lr}")
-    lr_finder.plot(show_lr=best_lr, yaxis_label="Training Accuracy")  # to inspect the accuracy-learning rate graph
+    lr_finder.plot(show_lr=best_lr,
+                   yaxis_label="Training Accuracy")  # to inspect the accuracy-learning rate graph
     lr_finder.reset()  # to reset the self.model and optimizer to their initial state
     return best_lr
