@@ -707,6 +707,10 @@ class LRFinder(object):
 
         # Show only if the figure was created internally
         if fig is not None:
+            plt.savefig('plot13.png')
+            from IPython.display import Image
+            Image(filename='plot13.png')
+            display(plt.gcf())
             plt.show()
 
         if suggest_lr and min_grad_idx is not None:
@@ -837,7 +841,7 @@ class StateCacher(object):
 def find_network_lr(model, criterion, optimizer, device, train_loader, init_lr,
                     init_weight_decay, end_lr=1, num_epochs=100):
     print(
-        f"Finding max LR for One Cycle Policy using LR Test Range over {num_epochs} epochs...")
+        f"Finding max LR for One Cycle Policy using LR Range Test over {num_epochs} epochs...")
     lr_range_test_optimizer = optimizer(model.parameters(), lr=init_lr,
                                         weight_decay=init_weight_decay)
     lr_finder = LRFinder(model, lr_range_test_optimizer, criterion,
