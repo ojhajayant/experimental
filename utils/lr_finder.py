@@ -770,7 +770,6 @@ def range_test_over_epochs(
 
     print("Learning rate search finished. See the graph with {finder_name}.plot()")
 
-
 def find_network_lr(model, criterion, device, train_loader, init_lr, init_weight_decay, end_lr=1, num_epochs=100):
     print(f"Finding max LR for One Cycle Policy using LR Test Range over {num_epochs} epochs...")
     lr_range_test_optimizer = optim.SGD(model.parameters(), lr=init_lr, weight_decay=init_weight_decay)
