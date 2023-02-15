@@ -18,6 +18,7 @@ import matplotlib.pyplot as plt
 from IPython.display import display
 import cfg
 from utils import misc
+from utils import train
 from models import resnet18
 
 sys.path.append('./')
@@ -363,7 +364,7 @@ class LRFinder(object):
             num_epochs=100,
             step_mode="linear",
             smooth_f=0,
-#             smooth_f=0.05,
+            # smooth_f=0.05,
             accumulation_steps=1,
             non_blocking_transfer=True,
     ):
@@ -448,9 +449,11 @@ class LRFinder(object):
         num_iter = len([b for b, _ in enumerate(train_loader)])
         # Initialize the proper learning rate policy
         if step_mode.lower() == "exp":
-            lr_schedule = ExponentialLR(self.optimizer, end_lr, num_iter*num_epochs)
+            lr_schedule = ExponentialLR(self.optimizer, end_lr,
+                                        num_iter * num_epochs)
         elif step_mode.lower() == "linear":
-            lr_schedule = LinearLR(self.optimizer, end_lr, num_iter*num_epochs)
+            lr_schedule = LinearLR(self.optimizer, end_lr,
+                                   num_iter * num_epochs)
         else:
             raise ValueError(
                 "expected one of (exp, linear), got {}".format(step_mode))
@@ -487,11 +490,16 @@ class LRFinder(object):
             train_acc = []
             for iteration in range(num_iter):
                 # Train on batch and retrieve acc
-                _, acc = self._train_batch(
-                    train_iter,
-                    accumulation_steps,
-                    non_blocking_transfer=non_blocking_transfer,
-                )
+                acc = train.train_calc_acc(model=self.model,
+                                           device=self.device,
+                                           train_iter=train_iter,
+                                           optimizer=self.optimizer,
+                                           criterion=self.criterion)
+                # _, acc = self._train_batch(
+                #     train_iter,
+                #     accumulation_steps,
+                #     non_blocking_transfer=non_blocking_transfer,
+                # )
                 train_acc.append(acc)
 
                 # Track the best acc and smooth it if smooth_f is specified
@@ -505,7 +513,6 @@ class LRFinder(object):
                     if accuracy > self.best_acc:
                         self.best_acc = accuracy
 
-                # Check if the acc has diverged; if it has, stop the test
                 self.history["acc"].append(accuracy)
                 # Update the learning rate
                 self.history["lr"].append(lr_schedule.get_lr()[0])
@@ -722,6 +729,7 @@ class LRFinder(object):
         else:
             return ax
 
+
 class LinearLR(_LRScheduler):
     """Linearly increases the learning rate between two boundaries over a number of
     iterations.
@@ -850,7 +858,7 @@ def find_network_lr(model, criterion, optimizer, device, train_loader, init_lr,
     lr_finder = LRFinder(model, lr_range_test_optimizer, criterion,
                          device=device)
     lr_finder.range_test_acc_over_epochs(train_loader, end_lr=end_lr,
-                                     num_epochs=num_epochs)
+                                         num_epochs=num_epochs)
     max_val_index = lr_finder.history['acc'].index(lr_finder.best_acc)
     best_lr = lr_finder.history['lr'][max_val_index]
     print(f"LR (max accuracy {lr_finder.best_acc}) to be used: {best_lr}")
