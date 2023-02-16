@@ -962,10 +962,12 @@ def lr_range_test(end_lr, init_lr, device, epoch, model, criterion, train_loader
         #Image(filename='plot13.png')
         #display(plt.gcf())
         plt.show()
+    return best_lr 
 
 
 def find_network_lr(model, criterion, optimizer, device, train_loader, init_lr,
                     init_weight_decay, end_lr=1, num_epochs=100, L1=False):
     print(
         f"Finding max LR for One Cycle Policy using LR Range Test over {num_epochs} epochs...")
-    lr_range_test(end_lr, init_lr, device, num_epochs, model, criterion, train_loader, L1=L1)
+    best_lr = lr_range_test(end_lr, init_lr, device, num_epochs, model, criterion, train_loader, L1=L1)
+    return best_lr
