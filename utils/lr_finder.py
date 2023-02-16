@@ -871,15 +871,6 @@ class StateCacher(object):
 #     # initial state
 #     return best_lr
 
-
-# !/usr/bin/env python
-# coding: utf-8
-
-# In[ ]:
-
-
-
-
 def lr_range_test(end_lr, init_lr, device, epoch, model, criterion, train_loader):
     global best_acc
     step = (end_lr - init_lr) / epoch
