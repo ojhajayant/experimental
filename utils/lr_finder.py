@@ -880,13 +880,9 @@ class StateCacher(object):
 
 
 
-Lrtest_train_acc = []
-LRtest_Lr = []
-
-
-def LR_test(max_lr, min_lr, device, epoch, model, criterion, train_loader):
+def lr_range_test(end_lr, init_lr, device, epoch, model, criterion, train_loader):
     global best_acc
-    step = (max_lr - min_lr) / epoch
+    step = (end_lr - init_lr) / epoch
     lr = min_lr
     for e in range(epoch):
         test_model = copy.deepcopy(model)
@@ -974,4 +970,4 @@ def find_network_lr(model, criterion, optimizer, device, train_loader, init_lr,
                     init_weight_decay, end_lr=1, num_epochs=100):
     print(
         f"Finding max LR for One Cycle Policy using LR Range Test over {num_epochs} epochs...")
-    LR_test(end_lr, init_lr, device, num_epochs, model, criterion, train_loader)
+    lr_range_test(end_lr, init_lr, device, num_epochs, model, criterion, train_loader)
