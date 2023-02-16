@@ -871,7 +871,7 @@ class StateCacher(object):
 #     # initial state
 #     return best_lr
 
-def lr_range_test(end_lr, init_lr, device, epoch, model, criterion, train_loader):
+def lr_range_test(end_lr, init_lr, device, epoch, model, criterion, train_loader, L1=False):
     global best_acc
     step = (end_lr - init_lr) / epoch
     lr = init_lr
@@ -887,7 +887,14 @@ def lr_range_test(end_lr, init_lr, device, epoch, model, criterion, train_loader
             data, target = data.to(device), target.to(device)
             optimizer.zero_grad()
             y_pred = test_model(data)
-            loss = criterion(y_pred, target)
+            if L1:
+                to_reg = []
+                for param in model.parameters():
+                    to_reg.append(param.view(-1))
+                    l1 = args.l1_weight * misc.l1_penalty(torch.cat(to_reg))
+            else:
+                l1 = 0
+            loss = criterion(y_pred, target)  + l1
             loss.backward()
             optimizer.step()
             pred = y_pred.argmax(dim=1,
@@ -958,7 +965,7 @@ def lr_range_test(end_lr, init_lr, device, epoch, model, criterion, train_loader
 
 
 def find_network_lr(model, criterion, optimizer, device, train_loader, init_lr,
-                    init_weight_decay, end_lr=1, num_epochs=100):
+                    init_weight_decay, end_lr=1, num_epochs=100, L1=False):
     print(
         f"Finding max LR for One Cycle Policy using LR Range Test over {num_epochs} epochs...")
-    lr_range_test(end_lr, init_lr, device, num_epochs, model, criterion, train_loader)
+    lr_range_test(end_lr, init_lr, device, num_epochs, model, criterion, train_loader, L1=L1)
