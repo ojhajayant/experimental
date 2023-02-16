@@ -12,7 +12,7 @@ import cv2
 import numpy as np
 import torch
 from albumentations import Compose, RandomCrop, HorizontalFlip, Normalize
-from albumentations import CoarseDropout, PadIfNeeded, ShiftScaleRotate
+from albumentations import CoarseDropout, PadIfNeeded, ShiftScaleRotate, RandomBrightness, RandomContrast
 from albumentations.augmentations.transforms import HueSaturationValue
 from albumentations.augmentations.crops.transforms import RandomSizedCrop
 from albumentations.pytorch.transforms import ToTensorV2
@@ -54,6 +54,8 @@ class album_Compose:
                               always_apply=False, p=0.65,
                               fill_value=tuple([x * 255.0 for x in mean])),
                 HueSaturationValue(hue_shift_limit=10, sat_shift_limit=15, val_shift_limit=1, p=0.5),
+                RandomBrightness(limit=0.1, p=0.5),
+                RandomContrast(limit=0.07, p=0.5),
                 Normalize(mean=mean, std=std, always_apply=True),
                 ToTensorV2(),
 
