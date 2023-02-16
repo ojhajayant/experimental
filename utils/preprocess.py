@@ -9,7 +9,7 @@ import sys
 import matplotlib
 # matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-from IPython.display import display
+#from IPython.display import display
 import numpy as np
 import torch
 from torchvision import datasets, transforms
