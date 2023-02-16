@@ -3,6 +3,8 @@
 lr_finder.py: This contains learning-rate-finder class definitions & utilities.
 """
 from __future__ import print_function, with_statement, division
+import torch.optim as optim
+
 import copy
 import os
 import sys
@@ -876,12 +878,7 @@ class StateCacher(object):
 # In[ ]:
 
 
-import torch.nn as nn
-import torch.optim as optim
-from tqdm import tqdm
-import matplotlib.pyplot as plt
 
-import copy
 
 Lrtest_train_acc = []
 LRtest_Lr = []
@@ -912,24 +909,24 @@ def LR_test(max_lr, min_lr, device, epoch, model, criterion, train_loader):
             correct += pred.eq(target.view_as(pred)).sum().item()
             processed += len(data)
             pbar.set_description(
-                desc=f'epoch = {e + 1} Lr = {optimizer.param_groups[0]["lr"]}  Loss={loss.item()} Batch_id={batch_idx} Accuracy={100 * correct / processed:0.2f}')
-            Lrtest_train_acc.append(100 * correct / processed)
-            LRtest_Lr.append(optimizer.param_groups[0]['lr'])
+                desc=f'EPOCH = {e + 1} LR = {optimizer.param_groups[0]["lr"]}  LOSS={loss.item()} BATCH={batch_idx} ACCURACY={100 * correct / processed:0.2f}')
+            cfg.lr_range_test_acc.append(100 * correct / processed)
+            cfg.lr_range_test_lr.append(optimizer.param_groups[0]['lr'])
             # Track the best acc and smooth it if smooth_f is specified
             smooth_f = 0.01
-            accuracy = Lrtest_train_acc[len(Lrtest_train_acc) - 1]
+            accuracy = cfg.lr_range_test_acc[len(cfg.lr_range_test_acc) - 1]
             if e == 0:
                 best_acc = accuracy
             else:
                 if smooth_f > 0:
                     accuracy = smooth_f * accuracy + (1 - smooth_f) * \
-                               Lrtest_train_acc[-1]
+                               cfg.lr_range_test_acc[-1]
                 if accuracy > best_acc:
                     best_acc = accuracy
 
-    max_val_index = Lrtest_train_acc.index(best_acc)
-    best_lr = Lrtest_train_acc[max_val_index]
-    print(f"LR (max accuracy { best_acc}) to be used: {LRtest_Lr[max_val_index]}")
+    max_val_index = cfg.lr_range_test_acc.index(best_acc)
+    best_lr = cfg.lr_range_test_lr[max_val_index]
+    print(f"LR (for max accuracy: { best_acc}) to be used: {cfg.lr_range_test_lr[max_val_index]}")
 
     skip_start = 10
     skip_end = 5
@@ -937,16 +934,16 @@ def LR_test(max_lr, min_lr, device, epoch, model, criterion, train_loader):
     show_lr = best_lr
     ax = None
     xaxis_label = "Learning rate"
-    yaxis_label = "Loss"
-    lrs = LRtest_Lr
-    losses = Lrtest_train_acc
+    yaxis_label = "Accuracy"
+    lrs = cfg.lr_range_test_lr
+    acc = cfg.lr_range_test_acc
 
     if skip_end == 0:
         lrs = lrs[skip_start:]
-        losses = losses[skip_start:]
+        acc = acc[skip_start:]
     else:
         lrs = lrs[skip_start:-skip_end]
-        losses = losses[skip_start:-skip_end]
+        acc = acc[skip_start:-skip_end]
 
     # Create the figure and axes object if axes was not already given
     fig = None
@@ -954,7 +951,7 @@ def LR_test(max_lr, min_lr, device, epoch, model, criterion, train_loader):
         fig, ax = plt.subplots()
 
     # Plot loss as a function of the learning rate
-    ax.plot(lrs, losses)
+    ax.plot(lrs, acc)
 
     if log_lr:
         ax.set_xscale("log")
@@ -975,4 +972,6 @@ def LR_test(max_lr, min_lr, device, epoch, model, criterion, train_loader):
 
 def find_network_lr(model, criterion, optimizer, device, train_loader, init_lr,
                     init_weight_decay, end_lr=1, num_epochs=100):
+    print(
+        f"Finding max LR for One Cycle Policy using LR Range Test over {num_epochs} epochs...")
     LR_test(end_lr, init_lr, device, num_epochs, model, criterion, train_loader)
