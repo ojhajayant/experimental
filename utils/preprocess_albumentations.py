@@ -43,7 +43,7 @@ class album_Compose:
                 RandomSizedCrop((img_size[0],img_size[1]), img_size[0],img_size[1],
                                 always_apply=True,
                                 p=1.0),
-                HorizontalFlip(p=0.5),
+                HorizontalFlip(p=0.75),
 #                 ShiftScaleRotate(shift_limit=0.3, 
 #                                  scale_limit=0.3,
 #                                  rotate_limit=15,
