@@ -75,7 +75,7 @@ class EVA8_session8_assignment_model(nn.Module):
         self.layer1 = Layer(64, 128)
         self.layer2 = Layer(128, 256, skip_resblock=True)
         self.layer3 = Layer(256, 512)
-        self.maxpool = nn.MaxPool2d(kernel_size=4, stride=4)
+        self.maxpool = nn.MaxPool2d(kernel_size=4, stride=2)
         self.fc = nn.Linear(512, num_classes, bias=False)
 
     def forward(self, x):
