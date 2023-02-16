@@ -64,7 +64,7 @@ def plot_train_samples(train_loader, batch_size):
         #Image(filename='plot2.png')
         #display(plt.gcf())
         if not args.IPYNB_ENV:
-            plt.savefig(filepath)
+            #plt.savefig(filepath)
     if args.IPYNB_ENV:
         #plt.savefig('plot3.png')
         #from IPython.display import Image
@@ -382,7 +382,7 @@ def show_gradcam_mislabelled(model, device, x_test, y_test, y_pred,
                 _ = fig.add_subplot(ax)
         if not args.IPYNB_ENV:
             fig.show()
-            fig.savefig(filepath)
+            #fig.savefig(filepath)
         else:
             fig.show()
     #plt.savefig('plot12.png')
