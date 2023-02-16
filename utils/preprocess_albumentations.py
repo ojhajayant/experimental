@@ -49,7 +49,7 @@ class album_Compose:
                 ShiftScaleRotate(shift_limit=0.1, 
                                  scale_limit=0.2,
                                  rotate_limit=10,
-                                 border_mode=cv2.BORDER_REFLECT),
+                                 border_mode=cv2.BORDER_WRAP),
                 CoarseDropout(max_holes=1, max_height=img_size[0] // 4,
                               max_width=img_size[1] // 4,
                               min_height=img_size[0] // 4,
