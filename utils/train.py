@@ -8,7 +8,9 @@ import sys
 
 import torch
 import torch.nn.functional as F
+import torch.optim as optim
 from tqdm import tqdm
+import copy
 
 import cfg
 from utils import misc
@@ -79,13 +81,15 @@ def train(model, device, train_loader, optimizer, epoch, criterion,
     return (100 * correct / processed)
 
 
-def train_calc_acc(model, device, train_iter, optimizer, criterion,
-          scheduler=None, L1=False):
+def train_calc_acc(model, device, train_iter, criterion, lr,
+                   scheduler=None, L1=False):
     """
     main training code
     """
     global args
-    model.train()
+    test_model = copy.deepcopy(model)
+    optimizer = optim.SGD(test_model.parameters(), lr=lr, momentum=0.9)
+    test_model.train()
     correct = 0
     processed = 0
     data, target = next(train_iter)
@@ -100,10 +104,10 @@ def train_calc_acc(model, device, train_iter, optimizer, criterion,
     # you do the parameter update correctly.
 
     # Predict
-    y_pred = model(data)
+    y_pred = test_model(data)
     if L1:
         to_reg = []
-        for param in model.parameters():
+        for param in test_model.parameters():
             to_reg.append(param.view(-1))
         l1 = args.l1_weight * misc.l1_penalty(torch.cat(to_reg))
     else:
