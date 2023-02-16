@@ -37,14 +37,10 @@ class album_Compose:
             self.albumentations_transform = Compose([
                 PadIfNeeded(min_height= img_size[0] + img_size[0] // 4,
                             min_width= img_size[1] + img_size[1] // 4,
-                            border_mode=cv2.BORDER_REPLICATE,
-                            always_apply=True, 
-                            p=1.0
-                            ),
+                            always_apply=True, p=1.0),
                 RandomSizedCrop((img_size[0],img_size[1]), img_size[0],img_size[1],
                                 always_apply=True,
                                 p=1.0),
-                # RandomCrop(height=32, width=32, always_apply=True),
                 HorizontalFlip(p=0.5),
                 ShiftScaleRotate(shift_limit=0.1, 
                                  scale_limit=0.2,
