@@ -919,6 +919,10 @@ def LR_test(max_lr, min_lr, device, epoch, model, criterion, trainloader,
         plt.ylabel('train Accuracy')
         plt.xlabel("Learning rate")
         plt.title("Lr v/s accuracy")
+        plt.savefig('plot13.png')
+        from IPython.display import Image
+        Image(filename='plot13.png')
+        display(plt.gcf())
         plt.show()
 
 
