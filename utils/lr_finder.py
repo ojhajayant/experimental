@@ -883,7 +883,7 @@ class StateCacher(object):
 def lr_range_test(end_lr, init_lr, device, epoch, model, criterion, train_loader):
     global best_acc
     step = (end_lr - init_lr) / epoch
-    lr = min_lr
+    lr = init_lr
     for e in range(epoch):
         test_model = copy.deepcopy(model)
         optimizer = optim.SGD(test_model.parameters(), lr=lr, momentum=0.9)
