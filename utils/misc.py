@@ -284,12 +284,8 @@ def plot_acc_loss():
     axs[1, 1].plot(cfg.test_acc)
     axs[1, 1].set_title("Test Accuracy")
     if not args.IPYNB_ENV:
-        #fig.savefig(filepath)
+        fig.savefig(filepath)
     else:
-        #plt.savefig('plot9.png')
-        #from IPython.display import Image
-        #Image(filename='plot9.png')
-        #display(plt.gcf())
         fig.show()
 
 
