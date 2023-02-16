@@ -47,7 +47,7 @@ class album_Compose:
                 HorizontalFlip(p=0.5),
                 ShiftScaleRotate(shift_limit=0.1, 
                                  scale_limit=0.2,
-                                 rotate_limit=15,
+                                 rotate_limit=10,
                                  border_mode=cv2.BORDER_WRAP),
                 CoarseDropout(max_holes=1, max_height=img_size[0] // 4,
                               max_width=img_size[1] // 4,
