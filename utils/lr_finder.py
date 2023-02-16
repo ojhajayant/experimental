@@ -17,7 +17,7 @@ from torch.optim.lr_scheduler import _LRScheduler
 import matplotlib
 # matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-from IPython.display import display
+# from IPython.display import display
 import cfg
 from utils import misc
 from utils import train
@@ -720,10 +720,10 @@ class LRFinder(object):
 
         # Show only if the figure was created internally
         if fig is not None:
-            plt.savefig('plot13.png')
-            from IPython.display import Image
-            Image(filename='plot13.png')
-            display(plt.gcf())
+            #plt.savefig('plot13.png')
+            #from IPython.display import Image
+            #Image(filename='plot13.png')
+            #display(plt.gcf())
             plt.show()
 
         if suggest_lr and min_grad_idx is not None:
