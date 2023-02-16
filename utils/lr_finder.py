@@ -905,7 +905,7 @@ def lr_range_test(end_lr, init_lr, device, epoch, model, criterion, train_loader
             correct += pred.eq(target.view_as(pred)).sum().item()
             processed += len(data)
             pbar.set_description(
-                desc=f'EPOCH = {e + 1} LR = {optimizer.param_groups[0]["lr"]}  LOSS={loss.item()} BATCH={batch_idx} ACCURACY={100 * correct / processed:0.2f}')
+                desc=f'EPOCH = {e + 1} LR = {optimizer.param_groups[0]["lr"]}  loss={loss.item()} batch={batch_idx} acc={100 * correct / processed:0.2f}')
             cfg.lr_range_test_acc.append(100 * correct / processed)
             cfg.lr_range_test_lr.append(optimizer.param_groups[0]['lr'])
             # Track the best acc and smooth it if smooth_f is specified
