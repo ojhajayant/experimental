@@ -900,7 +900,7 @@ def lr_range_test(end_lr, init_lr, device, epoch, model, criterion, train_loader
             cfg.lr_range_test_acc.append(100 * correct / processed)
             cfg.lr_range_test_lr.append(optimizer.param_groups[0]['lr'])
             # Track the best acc and smooth it if smooth_f is specified
-            smooth_f = 0.01
+            smooth_f = 0.05
             accuracy = cfg.lr_range_test_acc[len(cfg.lr_range_test_acc) - 1]
             if e == 0:
                 best_acc = accuracy
