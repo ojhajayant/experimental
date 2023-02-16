@@ -363,8 +363,8 @@ class LRFinder(object):
             end_lr=10,
             num_epochs=100,
             step_mode="linear",
-#             smooth_f=0,
-            smooth_f=0.05,
+            smooth_f=0,
+            # smooth_f=0.05,
             accumulation_steps=1,
             non_blocking_transfer=True,
     ):
@@ -849,25 +849,25 @@ class StateCacher(object):
                 os.remove(self.cached[k])
 
 
-def find_network_lr(model, criterion, optimizer, device, train_loader, init_lr,
-                    init_weight_decay, end_lr=1, num_epochs=100):
-    print(
-        f"Finding max LR for One Cycle Policy using LR Range Test over {num_epochs} epochs...")
-    lr_range_test_optimizer = optimizer(model.parameters(), lr=init_lr,
-                                        weight_decay=init_weight_decay)
-    lr_finder = LRFinder(model, lr_range_test_optimizer, criterion,
-                         device=device)
-    lr_finder.range_test_acc_over_epochs(train_loader, end_lr=end_lr,
-                                         num_epochs=num_epochs)
-    max_val_index = lr_finder.history['acc'].index(lr_finder.best_acc)
-    best_lr = lr_finder.history['lr'][max_val_index]
-    print(f"LR (max accuracy {lr_finder.best_acc}) to be used: {best_lr}")
-    lr_finder.plot(show_lr=best_lr,
-                   yaxis_label="Training Accuracy")  # to inspect the
-    # accuracy-learning rate graph
-    lr_finder.reset()  # to reset the self.model and optimizer to their
-    # initial state
-    return best_lr
+# def find_network_lr(model, criterion, optimizer, device, train_loader, init_lr,
+#                     init_weight_decay, end_lr=1, num_epochs=100):
+#     print(
+#         f"Finding max LR for One Cycle Policy using LR Range Test over {num_epochs} epochs...")
+#     lr_range_test_optimizer = optimizer(model.parameters(), lr=init_lr,
+#                                         weight_decay=init_weight_decay)
+#     lr_finder = LRFinder(model, lr_range_test_optimizer, criterion,
+#                          device=device)
+#     lr_finder.range_test_acc_over_epochs(train_loader, end_lr=end_lr,
+#                                          num_epochs=num_epochs)
+#     max_val_index = lr_finder.history['acc'].index(lr_finder.best_acc)
+#     best_lr = lr_finder.history['lr'][max_val_index]
+#     print(f"LR (max accuracy {lr_finder.best_acc}) to be used: {best_lr}")
+#     lr_finder.plot(show_lr=best_lr,
+#                    yaxis_label="Training Accuracy")  # to inspect the
+#     # accuracy-learning rate graph
+#     lr_finder.reset()  # to reset the self.model and optimizer to their
+#     # initial state
+#     return best_lr
 
 
 # !/usr/bin/env python
@@ -876,54 +876,103 @@ def find_network_lr(model, criterion, optimizer, device, train_loader, init_lr,
 # In[ ]:
 
 
-# import torch.nn as nn
-# import torch.optim as optim
-# from tqdm import tqdm
-# import matplotlib.pyplot as plt
-#
-# import copy
-#
-# Lrtest_train_acc = []
-# LRtest_Lr = []
-#
-#
-# def LR_test(max_lr, min_lr, device, epoch, model, criterion, trainloader,
-#             momemtum=0.9, weight_decay=0.05, plot=True):
-#     step = (max_lr - min_lr) / epoch
-#     lr = min_lr
-#     for e in range(epoch):
-#         testmodel = copy.deepcopy(model)
-#         optimizer = optim.SGD(testmodel.parameters(), lr=lr, momentum=momemtum,
-#                               weight_decay=weight_decay)
-#         lr += (max_lr - min_lr) / epoch
-#         testmodel.train()
-#         pbar = tqdm(trainloader)
-#         correct = 0
-#         processed = 0
-#         for batch_idx, (data, target) in enumerate(pbar):
-#             data, target = data.to(device), target.to(device)
-#             optimizer.zero_grad()
-#             y_pred = testmodel(data)
-#             loss = criterion(y_pred, target)
-#             loss.backward()
-#             optimizer.step()
-#             pred = y_pred.argmax(dim=1,
-#                                  keepdim=True)  # get the index of the max log-probability
-#             correct += pred.eq(target.view_as(pred)).sum().item()
-#             processed += len(data)
-#             pbar.set_description(
-#                 desc=f'epoch = {e + 1} Lr = {optimizer.param_groups[0]["lr"]}  Loss={loss.item()} Batch_id={batch_idx} Accuracy={100 * correct / processed:0.2f}')
-#         Lrtest_train_acc.append(100 * correct / processed)
-#         LRtest_Lr.append(optimizer.param_groups[0]['lr'])
-#
-#     if plot:
-#         plt.plot(LRtest_Lr, Lrtest_train_acc)
-#         plt.ylabel('train Accuracy')
-#         plt.xlabel("Learning rate")
-#         plt.title("Lr v/s accuracy")
-#
-#
-# def find_network_lr(model, criterion, optimizer, device, train_loader, init_lr,
-#                     init_weight_decay, end_lr=1, num_epochs=100):
-#     LR_test(end_lr, init_lr, device, num_epochs, model, criterion, train_loader,
-#             momemtum=0.9, weight_decay=0.05, plot=True)
+import torch.nn as nn
+import torch.optim as optim
+from tqdm import tqdm
+import matplotlib.pyplot as plt
+
+import copy
+
+Lrtest_train_acc = []
+LRtest_Lr = []
+
+
+def LR_test(max_lr, min_lr, device, epoch, model, criterion, train_loader):
+    global best_acc
+    step = (max_lr - min_lr) / epoch
+    lr = min_lr
+    for e in range(epoch):
+        test_model = copy.deepcopy(model)
+        optimizer = optim.SGD(test_model.parameters(), lr=lr, momentum=0.9)
+        lr += step
+        test_model.train()
+        pbar = tqdm(train_loader)
+        correct = 0
+        processed = 0
+        for batch_idx, (data, target) in enumerate(pbar):
+            data, target = data.to(device), target.to(device)
+            optimizer.zero_grad()
+            y_pred = test_model(data)
+            loss = criterion(y_pred, target)
+            loss.backward()
+            optimizer.step()
+            pred = y_pred.argmax(dim=1,
+                                 keepdim=True)  # get the index of the max
+            # log-probability
+            correct += pred.eq(target.view_as(pred)).sum().item()
+            processed += len(data)
+            pbar.set_description(
+                desc=f'epoch = {e + 1} Lr = {optimizer.param_groups[0]["lr"]}  Loss={loss.item()} Batch_id={batch_idx} Accuracy={100 * correct / processed:0.2f}')
+            Lrtest_train_acc.append(100 * correct / processed)
+            LRtest_Lr.append(optimizer.param_groups[0]['lr'])
+            # Track the best acc and smooth it if smooth_f is specified
+            smooth_f = 0.01
+            accuracy = Lrtest_train_acc[len(Lrtest_train_acc) - 1]
+            if e == 0:
+                best_acc = accuracy
+            else:
+                if smooth_f > 0:
+                    accuracy = smooth_f * accuracy + (1 - smooth_f) * \
+                               Lrtest_train_acc[-1]
+                if accuracy > best_acc:
+                    best_acc = accuracy
+
+    max_val_index = Lrtest_train_acc.index(best_acc)
+    best_lr = Lrtest_train_acc[max_val_index]
+    print(f"LR (max accuracy { best_acc}) to be used: {LRtest_Lr[max_val_index]}")
+
+    skip_start = 10
+    skip_end = 5
+    log_lr = True
+    show_lr = best_lr
+    ax = None
+    xaxis_label = "Learning rate"
+    yaxis_label = "Loss"
+    lrs = LRtest_Lr
+    losses = Lrtest_train_acc
+
+    if skip_end == 0:
+        lrs = lrs[skip_start:]
+        losses = losses[skip_start:]
+    else:
+        lrs = lrs[skip_start:-skip_end]
+        losses = losses[skip_start:-skip_end]
+
+    # Create the figure and axes object if axes was not already given
+    fig = None
+    if ax is None:
+        fig, ax = plt.subplots()
+
+    # Plot loss as a function of the learning rate
+    ax.plot(lrs, losses)
+
+    if log_lr:
+        ax.set_xscale("log")
+    ax.set_xlabel(xaxis_label)
+    ax.set_ylabel(yaxis_label)
+
+    if show_lr is not None:
+        ax.axvline(x=show_lr, color="red")
+
+    # Show only if the figure was created internally
+    if fig is not None:
+        plt.savefig('plot13.png')
+        from IPython.display import Image
+        Image(filename='plot13.png')
+        display(plt.gcf())
+        plt.show()
+
+
+def find_network_lr(model, criterion, optimizer, device, train_loader, init_lr,
+                    init_weight_decay, end_lr=1, num_epochs=100):
+    LR_test(end_lr, init_lr, device, num_epochs, model, criterion, train_loader)
