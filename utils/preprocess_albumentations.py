@@ -13,7 +13,8 @@ import numpy as np
 import torch
 from albumentations import Compose, RandomCrop, HorizontalFlip, Normalize
 from albumentations import CoarseDropout, PadIfNeeded, ShiftScaleRotate
-from albumentations.augmentations.crops.transforms import RandomSizedCrop, HueSaturationValue
+from albumentations.augmentations.transforms HueSaturationValue
+from albumentations.augmentations.crops.transforms import RandomSizedCrop
 from albumentations.pytorch.transforms import ToTensorV2
 from torchvision import datasets
 
