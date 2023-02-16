@@ -52,6 +52,7 @@ class album_Compose:
                               min_width=img_size[1] // 4,
                               always_apply=False, p=0.65,
                               fill_value=tuple([x * 255.0 for x in mean])),
+                HueSaturationValue(hue_shift_limit=10, sat_shift_limit=15, val_shift_limit=1, p=0.5),
                 Normalize(mean=mean, std=std, always_apply=True),
                 ToTensorV2(),
 
