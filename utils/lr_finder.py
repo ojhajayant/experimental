@@ -946,14 +946,14 @@ def lr_range_test(end_lr, init_lr, device, epoch, model, criterion, train_loader
     ax.set_ylabel(yaxis_label)
 
     if show_lr is not None:
-        ax.axvline(x=show_lr, color="red")
+        ax.axvline(x=best_lr, color="red")
 
     # Show only if the figure was created internally
     if fig is not None:
-        plt.savefig('plot13.png')
-        from IPython.display import Image
-        Image(filename='plot13.png')
-        display(plt.gcf())
+        #plt.savefig('plot13.png')
+        #from IPython.display import Image
+        #Image(filename='plot13.png')
+        #display(plt.gcf())
         plt.show()
 
 
