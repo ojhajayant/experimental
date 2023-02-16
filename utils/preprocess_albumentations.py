@@ -37,6 +37,7 @@ class album_Compose:
             self.albumentations_transform = Compose([
                 PadIfNeeded(min_height= img_size[0] + img_size[0] // 4,
                             min_width= img_size[1] + img_size[1] // 4,
+                            border_mode=cv2.BORDER_REPLICATE,
                             always_apply=True, 
                             p=1.0
                             ),
