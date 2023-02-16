@@ -63,7 +63,7 @@ def plot_train_samples(train_loader, batch_size):
         #from IPython.display import Image
         #Image(filename='plot2.png')
         #display(plt.gcf())
-        if not args.IPYNB_ENV:
+        #if not args.IPYNB_ENV:
             #plt.savefig(filepath)
     if args.IPYNB_ENV:
         #plt.savefig('plot3.png')
