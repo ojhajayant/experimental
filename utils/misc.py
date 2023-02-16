@@ -12,7 +12,7 @@ import cv2
 import matplotlib
 # matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-from IPython.display import display
+# from IPython.display import display
 import numpy as np
 import torch
 import torch.nn.functional as F
@@ -284,7 +284,7 @@ def plot_acc_loss():
     axs[1, 1].plot(cfg.test_acc)
     axs[1, 1].set_title("Test Accuracy")
     if not args.IPYNB_ENV:
-        fig.savefig(filepath)
+        #fig.savefig(filepath)
     else:
         #plt.savefig('plot9.png')
         #from IPython.display import Image
