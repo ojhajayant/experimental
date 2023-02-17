@@ -108,7 +108,7 @@ class album_Compose:
     def __call__(self, img):
         img = np.array(img)
         img = self.albumentations_transform(image=img)['image']
-        if args.cmd == train:
+        if args.cmd == 'train':
             img = AddPatchGaussian(patch_size=((img_size[0] * 15) // 16, img_size[1] // 2), max_scale=0.79,
                                    randomize_patch_size=False,
                                    randomize_scale=False)(img)
