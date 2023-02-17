@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+!/usr/bin/env python
 """
 preprocess_albumentations.py: This contains the data-pre-processing routine
 implemented using albumentations library.
@@ -118,10 +118,10 @@ class album_Compose:
                                 always_apply=True,
                                 p=1.0),
                 HorizontalFlip(p=0.5),
-#                 ShiftScaleRotate(shift_limit=0.1, 
-#                                  scale_limit=0.2,
-#                                  rotate_limit=10,
-#                                  border_mode=cv2.BORDER_WRAP),
+                ShiftScaleRotate(shift_limit=0.2, 
+                                 scale_limit=0.5,
+                                 rotate_limit=10,
+                                 border_mode=cv2.BORDER_WRAP),
                 CoarseDropout(max_holes=1, max_height=img_size[0] // 4,
                               max_width=img_size[1] // 4,
                               min_height=img_size[0] // 4,
