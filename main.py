@@ -307,7 +307,7 @@ def main_session_8_custom_net():
         # from base_momentum of 0.85 to max_momentum of 0.95 during OCP cycle
         MOMENTUM = 0.9
         WEIGHT_DECAY = weight_decay
-        DIV_FACTOR = 8
+        DIV_FACTOR = 10
         # final_div_factor = div_factor for NO annihilation
         FINAL_DIV_FACTOR = DIV_FACTOR
         EPOCHS = args.epochs
