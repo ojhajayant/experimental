@@ -56,7 +56,7 @@ def get_args():
                         help='epoch value used for the LR-range-test')
     parser.add_argument('--best_lr', default=0.03, type=float,
                         help='best_lr obtained from the LR-range-test')
-    parser.add_argument('--cycle_momentum', default=True, type=bool,
+    parser.add_argument('--cycle_momentum', default=False, type=bool,
                         help='Make cyclic changes to momentum value during OCP?')
     parser.add_argument('--optimizer', default=optim.SGD, type=type(optim.SGD),
                         help='The optimizer to be used during training')
