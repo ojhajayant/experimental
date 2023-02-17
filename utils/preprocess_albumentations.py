@@ -9,6 +9,10 @@ from __future__ import print_function
 import sys
 import cv2
 
+import random
+
+random.seed(0)
+
 import numpy as np
 import torch
 from albumentations import Compose, RandomCrop, HorizontalFlip, Normalize
