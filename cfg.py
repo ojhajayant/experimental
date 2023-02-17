@@ -58,6 +58,8 @@ def get_args():
                         help='best_lr obtained from the LR-range-test')
     parser.add_argument('--cycle_momentum', default=True, type=bool,
                         help='Make cyclic changes to momentum value during OCP?')
+    parser.add_argument('--div_factor', '-f', default=10, type=int,
+                        help='OCP div factor')
     parser.add_argument('--optimizer', default=optim.SGD, type=type(optim.SGD),
                         help='The optimizer to be used during training')
     parser.add_argument('--cuda', default=torch.cuda.is_available(), type=bool,
