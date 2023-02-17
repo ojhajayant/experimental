@@ -64,6 +64,38 @@ class AddPatchGaussian():
 
         return patch_gaussian
     
+    def _get_patch_mask(self, im_size: (int, int), window_size: (int, int)):
+        """
+        Args:
+        - im_size: size of image
+        - window_size: size of window. if -1, return full size mask
+        """
+        # assert im_size >= 1
+        # assert (1 <= window_size) or (window_size == -1)
+
+        # if window_size == -1, return all True mask.
+        if window_size == -1:
+            return torch.ones(im_size[0], im_size[1], dtype=torch.bool)
+
+        mask = torch.zeros(im_size[0], im_size[1], dtype=torch.bool)  # all elements are False
+
+        # sample window center. if window size is odd, sample from pixel position. if even, sample from grid position.
+        window_center_h = random.randrange(0, im_size[1]) if window_size[1] % 2 == 1 else random.randrange(0, im_size[
+            1] + 1)
+        window_center_w = random.randrange(0, im_size[0]) if window_size[0] % 2 == 1 else random.randrange(0, im_size[
+            0] + 1)
+
+        for idx_h in range(window_size[0]):
+            for idx_w in range(window_size[1]):
+                h = window_center_h - math.floor(window_size[0] / 2) + idx_h
+                w = window_center_w - math.floor(window_size[1] / 2) + idx_w
+
+                if (0 <= h < im_size[0]) and (0 <= w < im_size[1]):
+                    mask[h, w] = True
+
+        return mask
+    
+    
 class album_Compose:
     def __init__(self,
                  img_size,
