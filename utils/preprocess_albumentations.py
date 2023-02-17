@@ -26,7 +26,44 @@ from cfg import get_args
 args = get_args()
 file_path = args.data
 
+class AddPatchGaussian():
+    def __init__(self, patch_size: (int, int), max_scale: float, randomize_patch_size: bool, randomize_scale: bool,
+                 **kwargs):
+        """
+        Args:
+        - patch_size: size of patch(h,w) tuple. if -1, it means all image
+        - max_scale: max scale size. this value should be in [1, 0]
+        - randomize_patch_size: whether randomize patch size or not
+        - randomize_scale: whether randomize scale or not
+        """
+        assert (patch_size[0] >= 1) or (patch_size[1] >= 1) or (patch_size[0] == -1) or (patch_size[1] == -1)
+        assert 0.0 <= max_scale <= 1.0
 
+        self.patch_size = patch_size
+        self.max_scale = max_scale
+        self.randomize_patch_size = randomize_patch_size
+        self.randomize_scale = randomize_scale
+
+    def __call__(self, x: torch.tensor):
+        c, w, h = x.shape[-3:]
+
+        assert c == 3
+        assert h >= 1 and w >= 1
+        # assert h == w
+        patch_size = []
+        # randomize scale and patch_size
+        scale = random.uniform(0, 1) * self.max_scale if self.randomize_scale else self.max_scale
+        patch_size.append(
+            random.randrange(1, self.patch_size[0] + 1) if self.randomize_patch_size else self.patch_size[0])
+        patch_size.append(
+            random.randrange(1, self.patch_size[1] + 1) if self.randomize_patch_size else self.patch_size[1])
+        gaussian = torch.normal(mean=0.0, std=scale, size=(c, w, h))
+        gaussian_image = torch.clamp(x + gaussian, 0.0, 1.0)
+        mask = self._get_patch_mask((w, h), tuple(patch_size)).repeat(c, 1, 1)
+        patch_gaussian = torch.where(mask == True, gaussian_image, x)
+
+        return patch_gaussian
+    
 class album_Compose:
     def __init__(self,
                  img_size,
@@ -71,6 +108,13 @@ class album_Compose:
     def __call__(self, img):
         img = np.array(img)
         img = self.albumentations_transform(image=img)['image']
+        if train:
+            img = AddPatchGaussian(patch_size=((img_size[0] * 15) // 16, img_size[1] // 2), max_scale=0.79,
+                                   randomize_patch_size=False,
+                                   randomize_scale=False)(img)
+        # if train:
+            # img = AddPatchGaussian(patch_size=img_size // 2, max_scale=0.79, randomize_patch_size=True,
+                                  #  randomize_scale=True)(img)
         return img
 
 
