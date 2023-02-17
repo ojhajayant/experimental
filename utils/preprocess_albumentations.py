@@ -1,4 +1,4 @@
-!/usr/bin/env python
+#!/usr/bin/env python
 """
 preprocess_albumentations.py: This contains the data-pre-processing routine
 implemented using albumentations library.
