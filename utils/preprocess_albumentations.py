@@ -8,10 +8,10 @@ from __future__ import print_function
 
 import sys
 import cv2
-import math
-import random
+# import math
+# import random
 
-random.seed(0)
+# random.seed(0)
 
 import numpy as np
 import torch
@@ -30,74 +30,74 @@ from cfg import get_args
 args = get_args()
 file_path = args.data
 
-class AddPatchGaussian():
-    def __init__(self, patch_size: (int, int), max_scale: float, randomize_patch_size: bool, randomize_scale: bool,
-                 **kwargs):
-        """
-        Args:
-        - patch_size: size of patch(h,w) tuple. if -1, it means all image
-        - max_scale: max scale size. this value should be in [1, 0]
-        - randomize_patch_size: whether randomize patch size or not
-        - randomize_scale: whether randomize scale or not
-        """
-        assert (patch_size[0] >= 1) or (patch_size[1] >= 1) or (patch_size[0] == -1) or (patch_size[1] == -1)
-        assert 0.0 <= max_scale <= 1.0
+# class AddPatchGaussian():
+#     def __init__(self, patch_size: (int, int), max_scale: float, randomize_patch_size: bool, randomize_scale: bool,
+#                  **kwargs):
+#         """
+#         Args:
+#         - patch_size: size of patch(h,w) tuple. if -1, it means all image
+#         - max_scale: max scale size. this value should be in [1, 0]
+#         - randomize_patch_size: whether randomize patch size or not
+#         - randomize_scale: whether randomize scale or not
+#         """
+#         assert (patch_size[0] >= 1) or (patch_size[1] >= 1) or (patch_size[0] == -1) or (patch_size[1] == -1)
+#         assert 0.0 <= max_scale <= 1.0
 
-        self.patch_size = patch_size
-        self.max_scale = max_scale
-        self.randomize_patch_size = randomize_patch_size
-        self.randomize_scale = randomize_scale
+#         self.patch_size = patch_size
+#         self.max_scale = max_scale
+#         self.randomize_patch_size = randomize_patch_size
+#         self.randomize_scale = randomize_scale
 
-    def __call__(self, x: torch.tensor):
-        c, w, h = x.shape[-3:]
+#     def __call__(self, x: torch.tensor):
+#         c, w, h = x.shape[-3:]
 
-        assert c == 3
-        assert h >= 1 and w >= 1
-        # assert h == w
-        patch_size = []
-        # randomize scale and patch_size
-        scale = random.uniform(0, 1) * self.max_scale if self.randomize_scale else self.max_scale
-        patch_size.append(
-            random.randrange(1, self.patch_size[0] + 1) if self.randomize_patch_size else self.patch_size[0])
-        patch_size.append(
-            random.randrange(1, self.patch_size[1] + 1) if self.randomize_patch_size else self.patch_size[1])
-        gaussian = torch.normal(mean=0.0, std=scale, size=(c, w, h))
-        gaussian_image = torch.clamp(x + gaussian, 0.0, 1.0)
-        mask = self._get_patch_mask((w, h), tuple(patch_size)).repeat(c, 1, 1)
-        patch_gaussian = torch.where(mask == True, gaussian_image, x)
+#         assert c == 3
+#         assert h >= 1 and w >= 1
+#         # assert h == w
+#         patch_size = []
+#         # randomize scale and patch_size
+#         scale = random.uniform(0, 1) * self.max_scale if self.randomize_scale else self.max_scale
+#         patch_size.append(
+#             random.randrange(1, self.patch_size[0] + 1) if self.randomize_patch_size else self.patch_size[0])
+#         patch_size.append(
+#             random.randrange(1, self.patch_size[1] + 1) if self.randomize_patch_size else self.patch_size[1])
+#         gaussian = torch.normal(mean=0.0, std=scale, size=(c, w, h))
+#         gaussian_image = torch.clamp(x + gaussian, 0.0, 1.0)
+#         mask = self._get_patch_mask((w, h), tuple(patch_size)).repeat(c, 1, 1)
+#         patch_gaussian = torch.where(mask == True, gaussian_image, x)
 
-        return patch_gaussian
+#         return patch_gaussian
     
-    def _get_patch_mask(self, im_size: (int, int), window_size: (int, int)):
-        """
-        Args:
-        - im_size: size of image
-        - window_size: size of window. if -1, return full size mask
-        """
-        # assert im_size >= 1
-        # assert (1 <= window_size) or (window_size == -1)
+#     def _get_patch_mask(self, im_size: (int, int), window_size: (int, int)):
+#         """
+#         Args:
+#         - im_size: size of image
+#         - window_size: size of window. if -1, return full size mask
+#         """
+#         # assert im_size >= 1
+#         # assert (1 <= window_size) or (window_size == -1)
 
-        # if window_size == -1, return all True mask.
-        if window_size == -1:
-            return torch.ones(im_size[0], im_size[1], dtype=torch.bool)
+#         # if window_size == -1, return all True mask.
+#         if window_size == -1:
+#             return torch.ones(im_size[0], im_size[1], dtype=torch.bool)
 
-        mask = torch.zeros(im_size[0], im_size[1], dtype=torch.bool)  # all elements are False
+#         mask = torch.zeros(im_size[0], im_size[1], dtype=torch.bool)  # all elements are False
 
-        # sample window center. if window size is odd, sample from pixel position. if even, sample from grid position.
-        window_center_h = random.randrange(0, im_size[1]) if window_size[1] % 2 == 1 else random.randrange(0, im_size[
-            1] + 1)
-        window_center_w = random.randrange(0, im_size[0]) if window_size[0] % 2 == 1 else random.randrange(0, im_size[
-            0] + 1)
+#         # sample window center. if window size is odd, sample from pixel position. if even, sample from grid position.
+#         window_center_h = random.randrange(0, im_size[1]) if window_size[1] % 2 == 1 else random.randrange(0, im_size[
+#             1] + 1)
+#         window_center_w = random.randrange(0, im_size[0]) if window_size[0] % 2 == 1 else random.randrange(0, im_size[
+#             0] + 1)
 
-        for idx_h in range(window_size[0]):
-            for idx_w in range(window_size[1]):
-                h = window_center_h - math.floor(window_size[0] / 2) + idx_h
-                w = window_center_w - math.floor(window_size[1] / 2) + idx_w
+#         for idx_h in range(window_size[0]):
+#             for idx_w in range(window_size[1]):
+#                 h = window_center_h - math.floor(window_size[0] / 2) + idx_h
+#                 w = window_center_w - math.floor(window_size[1] / 2) + idx_w
 
-                if (0 <= h < im_size[0]) and (0 <= w < im_size[1]):
-                    mask[h, w] = True
+#                 if (0 <= h < im_size[0]) and (0 <= w < im_size[1]):
+#                     mask[h, w] = True
 
-        return mask
+#         return mask
     
     
 class album_Compose:
@@ -107,7 +107,7 @@ class album_Compose:
                  mean=[0.49139968, 0.48215841, 0.44653091],
                  std=[0.24703223, 0.24348513, 0.26158784]
                  ):
-        self.img_size = img_size
+#         self.img_size = img_size
         if train:
             self.albumentations_transform = Compose([
                 PadIfNeeded(min_height= img_size[0] + img_size[0] // 4,
@@ -145,13 +145,13 @@ class album_Compose:
     def __call__(self, img):
         img = np.array(img)
         img = self.albumentations_transform(image=img)['image']
-        if args.cmd == 'train':
-            img = AddPatchGaussian(patch_size=(self.img_size[0]  // 8, self.img_size[1] // 8), max_scale=0.79,
-                                   randomize_patch_size=False,
-                                   randomize_scale=False)(img)
-        # if train:
-            # img = AddPatchGaussian(patch_size=img_size // 2, max_scale=0.79, randomize_patch_size=True,
-                                  #  randomize_scale=True)(img)
+#         if args.cmd == 'train':
+#             img = AddPatchGaussian(patch_size=(self.img_size[0]  // 8, self.img_size[1] // 8), max_scale=0.79,
+#                                    randomize_patch_size=False,
+#                                    randomize_scale=False)(img)
+#         # if train:
+#             # img = AddPatchGaussian(patch_size=img_size // 2, max_scale=0.79, randomize_patch_size=True,
+#                                   #  randomize_scale=True)(img)
         return img
 
 
