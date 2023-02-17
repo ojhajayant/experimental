@@ -313,7 +313,7 @@ def main_session_8_custom_net():
         EPOCHS = args.epochs
         MAX_LR_EPOCHS = args.max_lr_epochs #EPOCHS // 2
         NUM_OF_BATCHES = len(train_loader)
-        PCT_START = MAX_LR_EPOCHS / EPOCHS
+        PCT_START = MAX_LR_EPOCHS / EPOCHS + 0.05
         # Based on above found maximum LR, initialize LRMAX and LRMIN
         LRMAX = best_lr
         LRMIN = LRMAX / DIV_FACTOR
