@@ -55,11 +55,13 @@ class ResBlock(nn.Module):
             nn.BatchNorm2d(out_channels),
             nn.ReLU(),
         )
+        self.shortcut = nn.Sequential()
 
     def forward(self, x):
-        x = self.convblock1(x)
-        x = self.convblock2(x)
-        return x
+        out = self.convblock1(x)
+        out = self.convblock2(out)
+        out += self.shortcut(x)
+        return out
 
 
 class Layer(nn.Module):
