@@ -26,7 +26,7 @@ import torch.optim as optim
 from torchsummary import summary
 
 import cfg
-from models import resnet18, EVA8_session8_assignment_model
+from models import resnet18, custom_resnet
 from utils import preprocess
 from utils import preprocess_albumentations
 from utils import test
@@ -75,7 +75,8 @@ def main_session_7_resnet():
     if args.use_albumentations:
         print(
             "Using albumentation lib for image-augmentation & other transforms")
-        train_dataset, test_dataset, train_loader, test_loader = \
+        train_dataset, test_dataset, train_loader, test_loader, \
+        lr_find_loader = \
             preprocess_albumentations.preprocess_data_albumentations(mean_tuple,
                                                                      std_tuple,
                                                                      img_size)
@@ -119,16 +120,14 @@ def main_session_7_resnet():
         init_weight_decay = weight_decay  # Based on L2 True/False
         end_lr = args.end_lr
         lr_range_test_epochs = args.lr_range_test_epochs
+
         best_lr = lr_finder.find_network_lr(model,
                                             criterion,
-                                            optimizer,
                                             device,
-                                            train_loader,
+                                            lr_find_loader,
                                             init_lr,
-                                            init_weight_decay,
                                             end_lr,
-                                            lr_range_test_epochs,
-                                            L1)
+                                            num_epochs=lr_range_test_epochs)
         print("best_lr is {}".format(best_lr))
     elif args.cmd == 'train':
         print("Model training starts on {} dataset".format(args.dataset))
@@ -139,7 +138,7 @@ def main_session_7_resnet():
         # from base_momentum of 0.85 to max_momentum of 0.95 during OCP cycle
         MOMENTUM = 0.9
         WEIGHT_DECAY = weight_decay
-        DIV_FACTOR = args.div_factor # default 10
+        DIV_FACTOR = args.div_factor  # default 10
         # final_div_factor = div_factor for NO annihilation
         FINAL_DIV_FACTOR = DIV_FACTOR
         EPOCHS = args.epochs
@@ -177,7 +176,8 @@ def main_session_7_resnet():
                         criterion,
                         scheduler=scheduler,
                         L1=L1)
-            model_name = test.test(model, device, test_loader, optimizer, epoch, criterion)
+            model_name = test.test(model, device, test_loader, optimizer, epoch,
+                                   criterion)
             last_best = last_best if (model_name == '') else model_name
         misc.plot_momentum_lr()
         misc.plot_acc()
@@ -240,7 +240,8 @@ def main_session_8_custom_net():
     if args.use_albumentations:
         print(
             "Using albumentation lib for image-augmentation & other transforms")
-        train_dataset, test_dataset, train_loader, test_loader = \
+        train_dataset, test_dataset, train_loader, test_loader, \
+        lr_find_loader = \
             preprocess_albumentations.preprocess_data_albumentations(mean_tuple,
                                                                      std_tuple,
                                                                      img_size)
@@ -250,8 +251,9 @@ def main_session_8_custom_net():
 
     # Data Statistics: It is important to know your data very well. Let's
     # check some statistics around our data and how it actually looks like
-    preprocess.get_data_stats(train_dataset, test_dataset, train_loader)
-    misc.plot_train_samples(train_loader, args.batch_size)
+    if args.cmd != 'test':
+        preprocess.get_data_stats(train_dataset, test_dataset, train_loader)
+        misc.plot_train_samples(train_loader, args.batch_size)
 
     # Using L1-regularization here (l1_weight = 0.000025, reusing some older
     # assignment values, but works OK here too)
@@ -270,8 +272,8 @@ def main_session_8_custom_net():
     device = torch.device("cuda" if args.cuda else "cpu")
     print(device)
 
-    # Get the model loaded with summary
-    model = EVA8_session8_assignment_model.EVA8_session8_assignment_model(10).\
+    # Get the model loaded with summary(10 classes)
+    model = custom_resnet.custom_resnet(10). \
         to(device)
     if args.dataset == 'CIFAR10':
         summary(model, input_size=(3, 32, 32))
@@ -282,21 +284,16 @@ def main_session_8_custom_net():
         # Use LR-Range-Test to find maximum best LR as applicable to OCP
         # (best_lr)
         init_lr = args.init_lr
-        init_weight_decay = weight_decay  # Based on L2 True/False
         end_lr = args.end_lr
         lr_range_test_epochs = args.lr_range_test_epochs
-        
+
         best_lr = lr_finder.find_network_lr(model,
                                             criterion,
-                                            optimizer,
                                             device,
-                                            train_loader,
+                                            lr_find_loader,
                                             init_lr,
-                                            init_weight_decay,
                                             end_lr,
-                                            lr_range_test_epochs,
-                                            L1
-                                            )
+                                            num_epochs=lr_range_test_epochs)
         print("best_lr is {}".format(best_lr))
     elif args.cmd == 'train':
         print("Model training starts on {} dataset".format(args.dataset))
@@ -307,13 +304,13 @@ def main_session_8_custom_net():
         # from base_momentum of 0.85 to max_momentum of 0.95 during OCP cycle
         MOMENTUM = 0.9
         WEIGHT_DECAY = weight_decay
-        DIV_FACTOR = args.div_factor # default 10
+        DIV_FACTOR = args.div_factor  # default 10
         # final_div_factor = div_factor for NO annihilation
         FINAL_DIV_FACTOR = DIV_FACTOR
-        EPOCHS = args.epochs   # 24 here
+        EPOCHS = args.epochs  # 24 here
         MAX_LR_EPOCHS = args.max_lr_epochs  # 5 here
         NUM_OF_BATCHES = len(train_loader)
-        PCT_START = MAX_LR_EPOCHS / EPOCHS  
+        PCT_START = MAX_LR_EPOCHS / EPOCHS
         # Based on above found maximum LR, initialize LRMAX and LRMIN
         LRMAX = best_lr
         LRMIN = LRMAX / DIV_FACTOR
@@ -329,7 +326,8 @@ def main_session_8_custom_net():
                             "anneal_strategy": "linear",
                             "div_factor": DIV_FACTOR,
                             "final_div_factor": FINAL_DIV_FACTOR,
-                            "cycle_momentum": CYCLE_MOMENTUM}
+                            "cycle_momentum": CYCLE_MOMENTUM,
+                            "three_phase": False}
         optimizer = optim.SGD(model.parameters(), **optim_params)
         scheduler = torch.optim.lr_scheduler.OneCycleLR(optimizer,
                                                         **scheduler_params)
@@ -345,7 +343,8 @@ def main_session_8_custom_net():
                         criterion,
                         scheduler=scheduler,
                         L1=L1)
-            model_name = test.test(model, device, test_loader, optimizer, epoch, criterion)
+            model_name = test.test(model, device, test_loader, optimizer, epoch,
+                                   criterion)
             last_best = last_best if (model_name == '') else model_name
         misc.plot_momentum_lr()
         misc.plot_acc()
@@ -354,7 +353,7 @@ def main_session_8_custom_net():
         model_name = args.best_model
         print("Loaded the best model: {} from last training session".format(
             model_name))
-        model = misc.load_model(resnet18.ResNet18(), device,
+        model = misc.load_model(custom_resnet.custom_resnet(10), device,
                                 model_name=model_name)
         y_test = np.array(test_dataset.targets)
         print(
@@ -371,10 +370,11 @@ def main_session_8_custom_net():
                                       test_dataset, mean_tuple,
                                       std_tuple, layer='layer3')
 
-        
+
 if __name__ == '__main__':
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
     args = cfg.get_args()
     main_session_8_custom_net()
+    
     # main_session_7_resnet()
