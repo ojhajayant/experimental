@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='experimental',
-    version='0.0.0',
+    version='0.0.1',
     description='My experimental repo',
     url='git@github.com:ojhajayant/experimental.git',
     author='Jayant Ojha',
