@@ -60,7 +60,7 @@ class ResBlock(nn.Module):
     def forward(self, x):
         out = self.convblock1(x)
         out = self.convblock2(out)
-        out += self.shortcut(x)
+        out = out + self.shortcut(x)
         return out
 
 
