@@ -273,7 +273,7 @@ def main_session_8_custom_net():
     print(device)
 
     # Get the model loaded with summary(10 classes)
-    model = custom_resnet.custom_resnet(10). \
+    model = custom_resnet.CustomResNet(10). \
         to(device)
     if args.dataset == 'CIFAR10':
         summary(model, input_size=(3, 32, 32))
@@ -353,7 +353,7 @@ def main_session_8_custom_net():
         model_name = args.best_model
         print("Loaded the best model: {} from last training session".format(
             model_name))
-        model = misc.load_model(custom_resnet.custom_resnet(10), device,
+        model = misc.load_model(custom_resnet.CustomResNet(10), device,
                                 model_name=model_name)
         y_test = np.array(test_dataset.targets)
         print(
