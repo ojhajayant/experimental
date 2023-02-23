@@ -55,12 +55,10 @@ class ResBlock(nn.Module):
             nn.BatchNorm2d(out_channels),
             nn.ReLU(),
         )
-        self.shortcut = nn.Sequential()
 
     def forward(self, x):
         x = self.convblock1(x)
         x = self.convblock2(x)
-        x = x + self.shortcut(x)
         return x
 
 
@@ -113,4 +111,4 @@ class custom_resnet(nn.Module):
         x = x.view(x.size(0), -1)
         x = self.fc(x)
         return x
-#         return F.softmax(x, dim=-1)
+        #return F.softmax(x, dim=-1)
