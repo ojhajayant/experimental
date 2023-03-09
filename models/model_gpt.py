@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 from torch.nn import functional as F
-from utils_gpt import DEVICE
+from utils.utils_gpt import DEVICE
 
 
 class AttentionHead(nn.Module):
